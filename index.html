@@ -1,98 +1,129 @@
 <!DOCTYPE html>
-
 <html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ReklamVibes | Dijital Reklam ve İtibar Yönetimi</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/animations.css">
-    <script defer src="js/main.js"></script>
-</head>
-<body>
-
-<!-- Header -->
-
-<header>
-    <div class="container">
-        <h1 class="logo">ReklamVibes</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="ReklamVibes: performans odaklı reklam yönetimi, web tasarım ve dijital itibar danışmanlığı."
+    />
+    <title>ReklamVibes | Dijital Büyüme Ajansı</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="animations.css" />
+    <script defer src="main.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container topbar">
+        <a href="#home" class="logo">ReklamVibes</a>
         <nav>
-            <ul>
-                <li><a href="index.html">Ana Sayfa</a></li>
-                <li><a href="services.html">Hizmetler</a></li>
-                <li><a href="portfolio.html">Portföy</a></li>
-                <li><a href="contact.html">İletişim</a></li>
-            </ul>
+          <button id="menu-toggle" class="menu-toggle" aria-label="Menüyü aç">☰</button>
+          <ul id="menu" class="menu">
+            <li><a href="#home">Ana Sayfa</a></li>
+            <li><a href="#services">Hizmetler</a></li>
+            <li><a href="#process">Süreç</a></li>
+            <li><a href="#portfolio">Portföy</a></li>
+            <li><a href="#contact">İletişim</a></li>
+          </ul>
         </nav>
-    </div>
-</header>
+      </div>
+    </header>
 
-<!-- Hero Section -->
-
-<section class="hero">
-    <div class="container">
-        <h2>Markanızı Dijital Dünyada Zirveye Taşıyoruz</h2>
-        <p>Google itibar yönetimi, reklam yönetimi ve web sitesi kurulumu ile tüm dijital ihtiyaçlarınız için yanınızdayız.</p>
-        <a href="contact.html" class="btn-primary">Hemen Teklif Al</a>
-    </div>
-</section>
-
-<!-- Services Section -->
-
-<section class="services">
-    <div class="container">
-        <h3>Hizmetlerimiz</h3>
-        <div class="service-cards">
-            <div class="card">
-                <h4>Google İtibar Yönetimi</h4>
-                <p>Markanızın dijital itibarını koruyor ve güçlendiriyoruz.</p>
+    <main>
+      <section id="home" class="hero section">
+        <div class="container hero-grid">
+          <div class="fade-in">
+            <p class="eyebrow">360° DİJİTAL BÜYÜME</p>
+            <h1>Markanızı görünür, güvenilir ve tercih edilen hale getiriyoruz.</h1>
+            <p>
+              ReklamVibes; performans reklamcılığı, web deneyimi ve itibar yönetimini tek çatı
+              altında birleştirir.
+            </p>
+            <div class="hero-actions">
+              <a class="btn-primary" href="#contact">Ücretsiz Ön Görüşme</a>
+              <a class="btn-secondary" href="#portfolio">Örnek Çalışmalar</a>
             </div>
-            <div class="card">
-                <h4>Reklam Yönetimi</h4>
-                <p>YouTube, Google ve sosyal medya reklamlarınızı optimize ediyoruz.</p>
-            </div>
-            <div class="card">
-                <h4>Web Sitesi Kurulumu</h4>
-                <p>Markanıza özel, şık ve hızlı web siteleri oluşturuyoruz.</p>
-            </div>
+          </div>
+          <aside class="metrics fade-in">
+            <div><strong>+120</strong><span>Tamamlanan proje</span></div>
+            <div><strong>%38</strong><span>Ortalama dönüşüm artışı</span></div>
+            <div><strong>7/24</strong><span>Raporlama ve destek</span></div>
+          </aside>
         </div>
-    </div>
-</section>
+      </section>
 
-<!-- Portfolio Section -->
-
-<section class="portfolio">
-    <div class="container">
-        <h3>Portföy</h3>
-        <div class="portfolio-items">
-            <div class="item">Proje 1</div>
-            <div class="item">Proje 2</div>
-            <div class="item">Proje 3</div>
+      <section id="services" class="section">
+        <div class="container">
+          <h2>Hizmet Alanlarımız</h2>
+          <div class="cards">
+            <article class="card fade-in">
+              <h3>Performans Reklam Yönetimi</h3>
+              <p>Google Ads, Meta ve YouTube kanallarında hedef odaklı kampanya kurgusu.</p>
+            </article>
+            <article class="card fade-in">
+              <h3>Dijital İtibar ve Marka Koruma</h3>
+              <p>Arama görünürlüğü, yorum yönetimi ve kriz senaryoları için stratejik planlama.</p>
+            </article>
+            <article class="card fade-in">
+              <h3>Web Tasarım & Dönüşüm Optimizasyonu</h3>
+              <p>Hızlı, modern ve satış odaklı web deneyimleri ile ziyaretçiyi müşteriye çevirme.</p>
+            </article>
+          </div>
         </div>
-    </div>
-</section>
+      </section>
 
-<!-- Contact Section -->
+      <section id="process" class="section alt">
+        <div class="container">
+          <h2>Nasıl Çalışıyoruz?</h2>
+          <ol class="timeline">
+            <li class="fade-in"><strong>01.</strong> Keşif görüşmesi ve hedef tanımı</li>
+            <li class="fade-in"><strong>02.</strong> Kanal stratejisi ve yaratıcı plan</li>
+            <li class="fade-in"><strong>03.</strong> Kampanya kurulumu ve test</li>
+            <li class="fade-in"><strong>04.</strong> Haftalık optimizasyon ve raporlama</li>
+          </ol>
+        </div>
+      </section>
 
-<section class="contact">
-    <div class="container">
-        <h3>İletişim</h3>
-        <form id="contact-form">
-            <input type="text" name="name" placeholder="Adınız" required>
-            <input type="email" name="email" placeholder="E-posta" required>
-            <textarea name="message" placeholder="Mesajınız" required></textarea>
+      <section id="portfolio" class="section">
+        <div class="container">
+          <h2>Örnek Başarı Hikayeleri</h2>
+          <div class="portfolio-grid">
+            <article class="item fade-in">
+              <h3>E-ticaret Moda Markası</h3>
+              <p>3 ayda ROAS 2.1’den 4.7’ye çıkarıldı.</p>
+            </article>
+            <article class="item fade-in">
+              <h3>Yerel Sağlık Kliniği</h3>
+              <p>Randevu başvurularında %52 artış sağlandı.</p>
+            </article>
+            <article class="item fade-in">
+              <h3>B2B Yazılım Firması</h3>
+              <p>LinkedIn + Google entegrasyonu ile kaliteli lead maliyeti %34 düştü.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" class="section alt">
+        <div class="container">
+          <h2>Teklif Alın</h2>
+          <form id="contact-form" class="contact-form">
+            <input type="text" name="name" placeholder="Ad Soyad" required />
+            <input type="email" name="email" placeholder="E-posta" required />
+            <input type="text" name="company" placeholder="Marka / Şirket" required />
+            <textarea name="message" rows="5" placeholder="Hedefinizi kısaca yazın" required></textarea>
             <button type="submit">Gönder</button>
-        </form>
-    </div>
-</section>
+            <p id="form-message" aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
+    </main>
 
-<!-- Footer -->
-
-<footer>
-    <div class="container">
-        <p>&copy; 2026 ReklamVibes. Tüm hakları saklıdır.</p>
-    </div>
-</footer>
-
-</body>
+    <footer>
+      <div class="container footer-row">
+        <p>© 2026 ReklamVibes. Tüm hakları saklıdır.</p>
+        <a href="#home">Yukarı çık</a>
+      </div>
+    </footer>
+  </body>
 </html>
