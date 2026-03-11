@@ -37,3 +37,36 @@ const observer = new IntersectionObserver(
 );
 
 faders.forEach((el) => observer.observe(el));
+
+const counters = document.querySelectorAll('[data-count]');
+const animateCounter = (el) => {
+  const target = Number(el.dataset.count);
+  const duration = 1200;
+  const startTime = performance.now();
+
+  const step = (now) => {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.floor(eased * target);
+
+    if (progress < 1) {
+      requestAnimationFrame(step);
+    }
+  };
+
+  requestAnimationFrame(step);
+};
+
+const counterObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        animateCounter(entry.target);
+        counterObserver.unobserve(entry.target);
+      }
+    });
+  },
+  { threshold: 0.5 }
+);
+
+counters.forEach((counter) => counterObserver.observe(counter));
