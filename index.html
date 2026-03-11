@@ -1,251 +1,98 @@
 <!DOCTYPE html>
+
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AIOdijital | Satış Odaklı Google İtibar Yönetimi</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
-        .gradient-text { background: linear-gradient(90deg, #3b82f6, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .cta-pulse { animation: pulse-red 2s infinite; }
-        @keyframes pulse-red { 
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
-        }
-        .trust-badge { background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; }
-    </style>
+    <title>ReklamVibes | Dijital Reklam ve İtibar Yönetimi</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <script defer src="js/main.js"></script>
 </head>
-<body class="bg-[#f8fafc] text-slate-900">
+<body>
 
-    <!-- Sticky Urgency Bar -->
-    <div class="bg-blue-600 text-white text-xs md:text-sm py-2 px-4 text-center font-bold sticky top-0 z-[60]">
-        🔥 BUGÜNE ÖZEL: İlk 5 Yorum İşlemi İçin %20 İndirim Fırsatını Kaçırmayın!
+<!-- Header -->
+
+<header>
+    <div class="container">
+        <h1 class="logo">ReklamVibes</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Ana Sayfa</a></li>
+                <li><a href="services.html">Hizmetler</a></li>
+                <li><a href="portfolio.html">Portföy</a></li>
+                <li><a href="contact.html">İletişim</a></li>
+            </ul>
+        </nav>
     </div>
+</header>
 
-    <!-- Navigation -->
-    <nav class="bg-white/80 backdrop-blur-md border-b border-slate-100 py-4 px-6 sticky top-9 z-50">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <div class="bg-blue-600 p-1.5 rounded-lg text-white">
-                    <i class="fas fa-microchip"></i>
-                </div>
-                <span class="text-xl font-black tracking-tighter">AIO<span class="text-blue-600">DİJİTAL</span></span>
+<!-- Hero Section -->
+
+<section class="hero">
+    <div class="container">
+        <h2>Markanızı Dijital Dünyada Zirveye Taşıyoruz</h2>
+        <p>Google itibar yönetimi, reklam yönetimi ve web sitesi kurulumu ile tüm dijital ihtiyaçlarınız için yanınızdayız.</p>
+        <a href="contact.html" class="btn-primary">Hemen Teklif Al</a>
+    </div>
+</section>
+
+<!-- Services Section -->
+
+<section class="services">
+    <div class="container">
+        <h3>Hizmetlerimiz</h3>
+        <div class="service-cards">
+            <div class="card">
+                <h4>Google İtibar Yönetimi</h4>
+                <p>Markanızın dijital itibarını koruyor ve güçlendiriyoruz.</p>
             </div>
-            <a href="https://wa.me/908503465043?text=Merhaba,%20Google%20Harita%20hizmetleri%20için%20ücretsiz%20analiz%20istiyorum." 
-               class="bg-green-500 text-white px-6 py-2 rounded-full font-bold text-sm hover:bg-green-600 transition shadow-lg flex items-center">
-                <i class="fab fa-whatsapp mr-2"></i> ÜCRETSİZ ANALİZ AL
-            </a>
-        </div>
-    </nav>
-
-    <!-- Hero Section (The Hook) -->
-    <section class="pt-16 pb-24 px-4">
-        <div class="max-w-5xl mx-auto text-center">
-            <h1 class="text-4xl md:text-7xl font-extrabold tracking-tight mb-6 leading-[1.1]">
-                Google'da Görünür Olmayan <br>
-                <span class="gradient-text">İşletme Kaybetmeye Mahkumdur.</span>
-            </h1>
-            <p class="text-xl md:text-2xl text-slate-600 mb-10 max-w-3xl mx-auto leading-relaxed">
-                Müşterilerinizin %93'ü sizi Google yorumlarınıza göre yargılıyor. <br class="hidden md:block">
-                <span class="text-blue-600 font-bold underline">Önce işlemi yapıyoruz,</span> yorumlar yayınlanınca ödemeyi alıyoruz.
-            </p>
-            
-            <!-- Comparison Table (Mental Hook) -->
-            <div class="grid md:grid-cols-2 gap-4 mb-12 max-w-2xl mx-auto">
-                <div class="bg-red-50 p-4 rounded-2xl border border-red-100 flex items-center space-x-3">
-                    <i class="fas fa-times-circle text-red-500 text-xl"></i>
-                    <span class="text-red-700 font-semibold text-sm">Diğerleri: Önce Para İster, Yorumlar Silinir.</span>
-                </div>
-                <div class="bg-green-50 p-4 rounded-2xl border border-green-100 flex items-center space-x-3">
-                    <i class="fas fa-check-circle text-green-500 text-xl"></i>
-                    <span class="text-green-700 font-semibold text-sm">AIOdijital: Önce İşlem, Kalıcı Yorum Garantisi.</span>
-                </div>
+            <div class="card">
+                <h4>Reklam Yönetimi</h4>
+                <p>YouTube, Google ve sosyal medya reklamlarınızı optimize ediyoruz.</p>
             </div>
-
-            <div class="flex flex-col sm:flex-row justify-center gap-4">
-                <a href="#paketler" class="bg-blue-600 text-white px-10 py-5 rounded-2xl font-bold text-xl shadow-2xl hover:bg-blue-700 transition-all hover:-translate-y-1">
-                    Hemen Paketleri İncele
-                </a>
-                <div class="flex items-center justify-center space-x-2 text-slate-500 font-medium">
-                    <i class="fas fa-shield-alt text-blue-500"></i>
-                    <span>Sıfır Risk Politikası</span>
-                </div>
+            <div class="card">
+                <h4>Web Sitesi Kurulumu</h4>
+                <p>Markanıza özel, şık ve hızlı web siteleri oluşturuyoruz.</p>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- Social Proof / Urgency (The Logic) -->
-    <section class="bg-slate-900 py-16 text-white overflow-hidden">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="grid md:grid-cols-4 gap-8 text-center">
-                <div>
-                    <div class="text-4xl font-black text-blue-400 mb-2">5.0</div>
-                    <p class="text-slate-400 text-sm">Ortalama Artış Puanı</p>
-                </div>
-                <div>
-                    <div class="text-4xl font-black text-blue-400 mb-2">12.000+</div>
-                    <p class="text-slate-400 text-sm">Aktif Yerel Rehber</p>
-                </div>
-                <div>
-                    <div class="text-4xl font-black text-blue-400 mb-2">%0</div>
-                    <p class="text-slate-400 text-sm">Silinme Oranı (Garantili)</p>
-                </div>
-                <div>
-                    <div class="text-4xl font-black text-blue-400 mb-2">24 Saat</div>
-                    <p class="text-slate-400 text-sm">Ortalama Yayına Giriş</p>
-                </div>
-            </div>
+<!-- Portfolio Section -->
+
+<section class="portfolio">
+    <div class="container">
+        <h3>Portföy</h3>
+        <div class="portfolio-items">
+            <div class="item">Proje 1</div>
+            <div class="item">Proje 2</div>
+            <div class="item">Proje 3</div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- Why Us (The Emotion) -->
-    <section id="ozellikler" class="py-24 px-6">
-        <div class="max-w-7xl mx-auto">
-            <div class="mb-16">
-                <span class="text-blue-600 font-bold uppercase tracking-widest text-sm">Sizin İçin Ne Yapıyoruz?</span>
-                <h2 class="text-4xl font-extrabold mt-2">Sıradan Bir Yorum Değil, <br>Bir Satış Makinesi Kuruyoruz.</h2>
-            </div>
-            
-            <div class="grid md:grid-cols-3 gap-8">
-                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-slate-100">
-                    <div class="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-8">
-                        <i class="fas fa-map-marked-alt text-2xl text-blue-600"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-4">Lokasyon Bazlı IP</h3>
-                    <p class="text-slate-500 leading-relaxed">Google sizin işletmenizin çevresindeki gerçek kişilerin yorum yapmasını ister. Biz, sadece gerçek lokasyondaki cihazları kullanıyoruz.</p>
-                </div>
-                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-slate-100">
-                    <div class="bg-green-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-8">
-                        <i class="fas fa-pen-nib text-2xl text-green-600"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-4">Anahtar Kelime Odaklı</h3>
-                    <p class="text-slate-500 leading-relaxed">"Harika yer" yerine "İstanbul'un en iyi oto servisi" gibi SEO uyumlu metinlerle sizi aramada en üste taşıyoruz.</p>
-                </div>
-                <div class="bg-white p-10 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all border border-slate-100">
-                    <div class="bg-purple-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-8">
-                        <i class="fas fa-user-check text-2xl text-purple-600"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-4">4. Seviye Yerel Rehberler</h3>
-                    <p class="text-slate-500 leading-relaxed">Google'ın en çok güvendiği "Local Guide" hesapları üzerinden yorum göndererek otoritenizi sarsılmaz kılıyoruz.</p>
-                </div>
-            </div>
-        </div>
-    </section>
+<!-- Contact Section -->
 
-    <!-- Pricing (The Choice) -->
-    <section id="paketler" class="py-24 bg-slate-100 px-6">
-        <div class="max-w-7xl mx-auto">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl font-black mb-4 uppercase">Kısa Süreli Tanışma Paketleri</h2>
-                <p class="text-slate-500 font-medium">Unutmayın: Bu bir harcama değil, işletmenize yapılan bir yatırımdır.</p>
-            </div>
+<section class="contact">
+    <div class="container">
+        <h3>İletişim</h3>
+        <form id="contact-form">
+            <input type="text" name="name" placeholder="Adınız" required>
+            <input type="email" name="email" placeholder="E-posta" required>
+            <textarea name="message" placeholder="Mesajınız" required></textarea>
+            <button type="submit">Gönder</button>
+        </form>
+    </div>
+</section>
 
-            <div class="grid md:grid-cols-3 gap-8">
-                <!-- Paket 1 -->
-                <div class="bg-white p-8 rounded-3xl shadow-sm flex flex-col hover:scale-[1.02] transition-transform">
-                    <div class="mb-6">
-                        <h4 class="text-lg font-bold text-slate-400">DENEME PAKETİ</h4>
-                        <div class="text-4xl font-black">10 Yorum</div>
-                    </div>
-                    <ul class="space-y-4 mb-8 text-sm font-medium text-slate-600 flex-grow">
-                        <li><i class="fas fa-check text-green-500 mr-2"></i> %100 Manuel İşlem</li>
-                        <li><i class="fas fa-check text-green-500 mr-2"></i> Hızlı Başlangıç (2 Saat)</li>
-                        <li><i class="fas fa-check text-green-500 mr-2"></i> Fotoğraf Desteği</li>
-                        <li class="p-2 trust-badge text-blue-700 font-bold">Ödeme: Yorumlar Çıkınca</li>
-                    </ul>
-                    <a href="https://wa.me/908503465043?text=10%20Yorumluk%20Deneme%20Paketi%20başlatmak%20istiyorum." 
-                       class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-blue-600 transition text-center">
-                        SATIN AL
-                    </a>
-                </div>
+<!-- Footer -->
 
-                <!-- Paket 2 (Focused) -->
-                <div class="bg-white p-8 rounded-3xl shadow-2xl ring-4 ring-blue-600 flex flex-col scale-105 relative z-10">
-                    <div class="absolute -top-5 right-10 bg-blue-600 text-white px-6 py-2 rounded-full text-xs font-black italic">EN ÇOK TERCİH EDİLEN</div>
-                    <div class="mb-6">
-                        <h4 class="text-lg font-bold text-blue-600 uppercase">Pro İtibar</h4>
-                        <div class="text-4xl font-black">25 Yorum</div>
-                    </div>
-                    <ul class="space-y-4 mb-8 text-sm font-bold text-slate-700 flex-grow">
-                        <li><i class="fas fa-star text-yellow-400 mr-2"></i> 4. Seviye Rehber Hesaplar</li>
-                        <li><i class="fas fa-star text-yellow-400 mr-2"></i> SEO Odaklı Metin Yazımı</li>
-                        <li><i class="fas fa-star text-yellow-400 mr-2"></i> Zamana Yayılmış Gönderim</li>
-                        <li><i class="fas fa-star text-yellow-400 mr-2"></i> Lokasyon Onaylı Cihazlar</li>
-                        <li class="p-3 bg-blue-50 rounded-xl text-blue-800 font-black italic">Önce İşlem, Sonra Ödeme</li>
-                    </ul>
-                    <a href="https://wa.me/908503465043?text=En%20popüler%2025%20Yorumluk%20Pro%20İtibar%20paketini%20başlatmak%20istiyorum." 
-                       class="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-lg hover:bg-blue-700 transition text-center cta-pulse">
-                        WHATSAPP'TAN BAŞLAT
-                    </a>
-                    <p class="text-[10px] text-center mt-4 text-slate-400 italic">Şu an bu paketi inceleyen 3 kişi var.</p>
-                </div>
-
-                <!-- Paket 3 -->
-                <div class="bg-white p-8 rounded-3xl shadow-sm flex flex-col hover:scale-[1.02] transition-transform">
-                    <div class="mb-6">
-                        <h4 class="text-lg font-bold text-slate-400 uppercase">Sektör Lideri</h4>
-                        <div class="text-4xl font-black">50 Yorum</div>
-                    </div>
-                    <ul class="space-y-4 mb-8 text-sm font-medium text-slate-600 flex-grow">
-                        <li><i class="fas fa-check text-green-500 mr-2"></i> Tam Otorite Yönetimi</li>
-                        <li><i class="fas fa-check text-green-500 mr-2"></i> Rakip Analizli Yorumlar</li>
-                        <li><i class="fas fa-check text-green-500 mr-2"></i> Fotoğraflı & Videolu</li>
-                        <li class="p-2 trust-badge text-blue-700 font-bold">Ödeme: Yorumlar Çıkınca</li>
-                    </ul>
-                    <a href="https://wa.me/908503465043?text=50%20Yorumluk%20Sektör%20Lideri%20paketi%20hakkında%20detayları%20konuşalım." 
-                       class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-blue-600 transition text-center text-sm">
-                        TEKLİF AL
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Closing / Final CTA (The Close) -->
-    <section class="py-24 px-6 bg-white border-t border-slate-100">
-        <div class="max-w-4xl mx-auto text-center">
-            <h2 class="text-4xl md:text-5xl font-black mb-8">Henüz İkna Olmadınız mı? <br><span class="text-blue-600 italic">Bedava Başlayalım.</span></h2>
-            <p class="text-xl text-slate-500 mb-12">
-                Hizmetimize o kadar güveniyoruz ki, işletmenizi inceleyip ilk yorumunuzu **ücretsiz** gönderiyoruz. Memnun kalırsanız devam ederiz. 
-                <br>Kaybedecek hiçbir şeyiniz yok ama kazanacak binlerce yeni müşteriniz var.
-            </p>
-            
-            <div class="inline-block bg-slate-50 p-8 rounded-[3rem] border-2 border-dashed border-blue-200">
-                <a href="https://wa.me/908503465043?text=Ücretsiz%20deneme%20yorumumu%20almak%20ve%20işletmemi%20analiz%20ettirmek%20istiyorum." 
-                   class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
-                    <div class="bg-green-500 w-20 h-20 rounded-full flex items-center justify-center text-white shadow-xl animate-bounce">
-                        <i class="fab fa-whatsapp text-4xl"></i>
-                    </div>
-                    <div class="text-left">
-                        <div class="text-2xl font-black text-slate-900">Şimdi Yazın, Analizi Başlatalım</div>
-                        <div class="text-green-600 font-bold">Ortalama Yanıt Süresi: 3 Dakika</div>
-                    </div>
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Minimal Footer -->
-    <footer class="bg-slate-900 py-12 text-center">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="flex flex-col items-center justify-center space-y-6">
-                <div class="flex items-center space-x-2 text-white">
-                    <div class="bg-blue-600 p-1.5 rounded-lg">
-                         <i class="fas fa-microchip"></i>
-                    </div>
-                    <span class="text-xl font-black tracking-tighter">AIO<span class="text-blue-600">DİJİTAL</span></span>
-                </div>
-                <p class="text-slate-500 text-sm italic">"Rakipleriniz Google'da büyürken, siz sadece izlemeyin."</p>
-                <div class="text-slate-600 text-xs">
-                    &copy; 2026 AIOdijital Performans Ajansı. Tüm Hakları Saklıdır.
-                </div>
-            </div>
-        </div>
-    </footer>
+<footer>
+    <div class="container">
+        <p>&copy; 2026 ReklamVibes. Tüm hakları saklıdır.</p>
+    </div>
+</footer>
 
 </body>
 </html>
