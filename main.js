@@ -1,27 +1,39 @@
-// js/main.js
-
-// Basit form gönderim işlemi
 const form = document.getElementById('contact-form');
-form.addEventListener('submit', function(e) {
-e.preventDefault();
-alert('Mesajınız gönderildi!');
-form.reset();
-});
+const formMessage = document.getElementById('form-message');
+const menuToggle = document.getElementById('menu-toggle');
+const menu = document.getElementById('menu');
 
-// Scroll animasyonları için basit fade-in ekleme
+if (form) {
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const data = new FormData(form);
+    const name = data.get('name');
+    formMessage.textContent = `Teşekkürler ${name}, talebinizi aldık. 24 saat içinde dönüş yapacağız.`;
+    form.reset();
+  });
+}
+
+if (menuToggle && menu) {
+  menuToggle.addEventListener('click', () => {
+    menu.classList.toggle('open');
+  });
+
+  menu.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', () => menu.classList.remove('open'));
+  });
+}
+
 const faders = document.querySelectorAll('.fade-in');
-const appearOptions = {
-threshold: 0.5,
-rootMargin: "0px 0px -50px 0px"
-};
-const appearOnScroll = new IntersectionObserver(function(entries, appearOnScroll) {
-entries.forEach(entry => {
-if (!entry.isIntersecting) return;
-entry.target.classList.add('appear');
-appearOnScroll.unobserve(entry.target);
-});
-}, appearOptions);
+const observer = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('appear');
+        observer.unobserve(entry.target);
+      }
+    });
+  },
+  { threshold: 0.15 }
+);
 
-faders.forEach(fader => {
-appearOnScroll.observe(fader);
-});
+faders.forEach((el) => observer.observe(el));
