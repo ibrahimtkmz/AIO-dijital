@@ -13,6 +13,9 @@
     <script defer src="main.js"></script>
   </head>
   <body>
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
     <header class="site-header">
       <div class="container topbar">
         <a href="#home" class="logo">ReklamVibes</a>
@@ -34,21 +37,49 @@
         <div class="container hero-grid">
           <div class="fade-in">
             <p class="eyebrow">360° DİJİTAL BÜYÜME</p>
-            <h1>Markanızı görünür, güvenilir ve tercih edilen hale getiriyoruz.</h1>
+            <h1>Markanızı dijitalde fark edilir, güvenilir ve akılda kalıcı hale getiriyoruz.</h1>
             <p>
-              ReklamVibes; performans reklamcılığı, web deneyimi ve itibar yönetimini tek çatı
-              altında birleştirir.
+              ReklamVibes; performans reklamcılığı, dönüşüm odaklı web tasarım ve itibar yönetimini
+              tek bir yüksek etkili stratejide birleştirir.
             </p>
             <div class="hero-actions">
-              <a class="btn-primary" href="#contact">Ücretsiz Ön Görüşme</a>
-              <a class="btn-secondary" href="#portfolio">Örnek Çalışmalar</a>
+              <a class="btn-primary" href="#contact">Ücretsiz Strateji Görüşmesi</a>
+              <a class="btn-secondary" href="#portfolio">Başarı Hikayeleri</a>
+            </div>
+            <div class="trust-row fade-in">
+              <span>İş ortaklarımız:</span>
+              <div class="trust-tags">
+                <b>Google Partner</b>
+                <b>Meta Business</b>
+                <b>Shopify</b>
+              </div>
             </div>
           </div>
-          <aside class="metrics fade-in">
-            <div><strong>+120</strong><span>Tamamlanan proje</span></div>
-            <div><strong>%38</strong><span>Ortalama dönüşüm artışı</span></div>
-            <div><strong>7/24</strong><span>Raporlama ve destek</span></div>
+
+          <aside class="dashboard-card floating fade-in">
+            <p class="dashboard-title">Canlı Kampanya Görünümü</p>
+            <div class="chart-bars">
+              <span style="--h: 70%"></span>
+              <span style="--h: 40%"></span>
+              <span style="--h: 85%"></span>
+              <span style="--h: 60%"></span>
+              <span style="--h: 95%"></span>
+            </div>
+            <div class="dashboard-metrics">
+              <div><strong data-count="120">0</strong><small>Tamamlanan proje</small></div>
+              <div><strong data-count="38">0</strong><small>Ort. dönüşüm artışı %</small></div>
+              <div><strong data-count="24">0</strong><small>Saatte ilk geri dönüş</small></div>
+            </div>
           </aside>
+        </div>
+      </section>
+
+      <section class="kpi-strip section">
+        <div class="container kpi-grid">
+          <article class="kpi-item fade-in"><strong>+7.2M ₺</strong><span>Yönetilen reklam bütçesi</span></article>
+          <article class="kpi-item fade-in"><strong>%92</strong><span>Müşteri memnuniyeti skoru</span></article>
+          <article class="kpi-item fade-in"><strong>16 sektör</strong><span>Uzmanlıkla yürütülen kampanyalar</span></article>
+          <article class="kpi-item fade-in"><strong>3.4x</strong><span>Ortalama ROAS performansı</span></article>
         </div>
       </section>
 
@@ -57,16 +88,16 @@
           <h2>Hizmet Alanlarımız</h2>
           <div class="cards">
             <article class="card fade-in">
-              <h3>Performans Reklam Yönetimi</h3>
-              <p>Google Ads, Meta ve YouTube kanallarında hedef odaklı kampanya kurgusu.</p>
+              <h3>🚀 Performans Reklam Yönetimi</h3>
+              <p>Google Ads, Meta, TikTok ve YouTube kanallarında veri odaklı kampanya yönetimi.</p>
             </article>
             <article class="card fade-in">
-              <h3>Dijital İtibar ve Marka Koruma</h3>
-              <p>Arama görünürlüğü, yorum yönetimi ve kriz senaryoları için stratejik planlama.</p>
+              <h3>🛡️ Dijital İtibar ve Marka Koruma</h3>
+              <p>Arama görünürlüğü, yorum yönetimi ve kriz senaryoları için stratejik güven planı.</p>
             </article>
             <article class="card fade-in">
-              <h3>Web Tasarım & Dönüşüm Optimizasyonu</h3>
-              <p>Hızlı, modern ve satış odaklı web deneyimleri ile ziyaretçiyi müşteriye çevirme.</p>
+              <h3>💻 Web Tasarım & CRO</h3>
+              <p>Hızlı, modern ve satış odaklı web deneyimleriyle ziyaretçiyi müşteriye dönüştürme.</p>
             </article>
           </div>
         </div>
@@ -78,8 +109,8 @@
           <ol class="timeline">
             <li class="fade-in"><strong>01.</strong> Keşif görüşmesi ve hedef tanımı</li>
             <li class="fade-in"><strong>02.</strong> Kanal stratejisi ve yaratıcı plan</li>
-            <li class="fade-in"><strong>03.</strong> Kampanya kurulumu ve test</li>
-            <li class="fade-in"><strong>04.</strong> Haftalık optimizasyon ve raporlama</li>
+            <li class="fade-in"><strong>03.</strong> Kampanya kurulumu, test ve kalite kontrol</li>
+            <li class="fade-in"><strong>04.</strong> Haftalık optimizasyon ve şeffaf raporlama</li>
           </ol>
         </div>
       </section>
@@ -90,29 +121,35 @@
           <div class="portfolio-grid">
             <article class="item fade-in">
               <h3>E-ticaret Moda Markası</h3>
-              <p>3 ayda ROAS 2.1’den 4.7’ye çıkarıldı.</p>
+              <p>3 ayda ROAS 2.1’den 4.7’ye çıkarıldı ve terk sepet oranı %28 azaltıldı.</p>
             </article>
             <article class="item fade-in">
               <h3>Yerel Sağlık Kliniği</h3>
-              <p>Randevu başvurularında %52 artış sağlandı.</p>
+              <p>Randevu başvurularında %52 artış sağlandı, maliyet/lead %31 düşürüldü.</p>
             </article>
             <article class="item fade-in">
               <h3>B2B Yazılım Firması</h3>
-              <p>LinkedIn + Google entegrasyonu ile kaliteli lead maliyeti %34 düştü.</p>
+              <p>LinkedIn + Google entegrasyonu ile kaliteli lead maliyeti %34 optimize edildi.</p>
             </article>
           </div>
         </div>
       </section>
 
       <section id="contact" class="section alt">
-        <div class="container">
-          <h2>Teklif Alın</h2>
-          <form id="contact-form" class="contact-form">
+        <div class="container contact-grid">
+          <div class="fade-in">
+            <h2>Markanız için yeni bir büyüme hikayesi yazalım</h2>
+            <p>
+              Kısa bir brifing bırakın, ekibimiz iş modelinize özel yol haritasını 24 saat içinde
+              paylaşsın.
+            </p>
+          </div>
+          <form id="contact-form" class="contact-form fade-in">
             <input type="text" name="name" placeholder="Ad Soyad" required />
             <input type="email" name="email" placeholder="E-posta" required />
             <input type="text" name="company" placeholder="Marka / Şirket" required />
             <textarea name="message" rows="5" placeholder="Hedefinizi kısaca yazın" required></textarea>
-            <button type="submit">Gönder</button>
+            <button type="submit">Teklif Talebi Gönder</button>
             <p id="form-message" aria-live="polite"></p>
           </form>
         </div>

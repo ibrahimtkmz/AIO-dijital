@@ -1,7 +1,7 @@
 .fade-in {
   opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transform: translateY(24px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
 }
 
 .fade-in.appear {
@@ -11,13 +11,77 @@
 
 .card,
 .item,
-.timeline li {
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+.timeline li,
+.kpi-item,
+.dashboard-card,
+.contact-form {
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .card:hover,
 .item:hover,
-.timeline li:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+.timeline li:hover,
+.kpi-item:hover,
+.dashboard-card:hover,
+.contact-form:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 36px rgba(6, 10, 20, 0.35);
+  border-color: #4c75ff;
+}
+
+.chart-bars span {
+  animation: bars 1.4s ease both;
+}
+
+.floating {
+  animation: floating 4.5s ease-in-out infinite;
+}
+
+.bg-glow-1 {
+  animation: driftA 12s ease-in-out infinite alternate;
+}
+
+.bg-glow-2 {
+  animation: driftB 11s ease-in-out infinite alternate;
+}
+
+@keyframes floating {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes bars {
+  from {
+    transform: scaleY(0.2);
+    transform-origin: bottom;
+    opacity: 0.4;
+  }
+  to {
+    transform: scaleY(1);
+    transform-origin: bottom;
+    opacity: 1;
+  }
+}
+
+@keyframes driftA {
+  from {
+    transform: translate(-20px, 0px);
+  }
+  to {
+    transform: translate(20px, 15px);
+  }
+}
+
+@keyframes driftB {
+  from {
+    transform: translate(0px, -10px);
+  }
+  to {
+    transform: translate(-16px, 20px);
+  }
 }
