@@ -1,49 +1,24 @@
-const businesses = [
-  { name: 'Köşe Kahve', city: 'İstanbul', status: 'Bugünkü görev açık' },
-  { name: 'Mavi Fırın', city: 'Ankara', status: 'Bugünkü görev alındı' },
-  { name: 'Sahil Döner', city: 'İzmir', status: 'Bugünkü görev açık' },
-];
-
-const payoutRequests = [
-  {
-    user: 'Ayşe Yılmaz',
-    iban: 'TR12 **** **** **** **** **** **',
-    amount: '320 TL',
-    status: 'Beklemede',
-  },
-  {
-    user: 'Mehmet Demir',
-    iban: 'TR58 **** **** **** **** **** **',
-    amount: '200 TL',
-    status: 'Onaylandı',
-  },
+const availableTasks = [
+  { business: 'Köşe Kahve', city: 'İstanbul', reward: '40 TL', status: 'Uygun' },
+  { business: 'Sahil Döner', city: 'İzmir', reward: '40 TL', status: 'Uygun' },
+  { business: 'Mavi Fırın', city: 'Ankara', reward: '40 TL', status: 'Dolu' },
 ];
 
 export default function Home() {
   return (
     <main className="page">
       <section className="hero card">
-        <p className="tag">AIO Dijital • MVP</p>
-        <h1>Geri Bildirim ve Ödül Yönetim Platformu</h1>
+        <p className="tag">Yorumcu Paneli</p>
+        <h1>Geri Bildirim Görevleri</h1>
         <p>
-          Bu sürüm; işletme görev yönetimi, kullanıcı cüzdan birikimi ve ödeme talebi
-          süreçlerini tek panelde göstermek için hazırlandı.
+          Bu sayfa yalnızca yorumcu kullanıcılar için hazırlandı. Günlük görevleri görüp
+          tamamladığında cüzdanına ödül yansır.
         </p>
       </section>
 
       <section className="grid two">
         <article className="card">
-          <h2>Admin Özeti</h2>
-          <ul>
-            <li>Günlük görev kotası: İşletme başına 1 görev</li>
-            <li>Kullanıcı ödülü: 40 TL / onaylı geri bildirim</li>
-            <li>İşletme maliyeti: 200 TL / onaylı görev (yalnız admin)</li>
-            <li>Ödeme talepleri admin onayı ile işlenir</li>
-          </ul>
-        </article>
-
-        <article className="card">
-          <h2>Kullanıcı Cüzdanı (Örnek)</h2>
+          <h2>Cüzdanım (Örnek)</h2>
           <div className="metrics">
             <div>
               <span>Bekleyen</span>
@@ -54,40 +29,14 @@ export default function Home() {
               <strong>480 TL</strong>
             </div>
             <div>
-              <span>Toplam Kazanç</span>
+              <span>Toplam</span>
               <strong>1.640 TL</strong>
             </div>
           </div>
         </article>
-      </section>
 
-      <section className="card">
-        <h2>Bugünkü İşletme Görevleri</h2>
-        <div className="tableWrap">
-          <table>
-            <thead>
-              <tr>
-                <th>İşletme</th>
-                <th>Şehir</th>
-                <th>Durum</th>
-              </tr>
-            </thead>
-            <tbody>
-              {businesses.map((business) => (
-                <tr key={business.name}>
-                  <td>{business.name}</td>
-                  <td>{business.city}</td>
-                  <td>{business.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section className="grid two">
         <article className="card">
-          <h2>Ödeme Talebi Formu (MVP UI)</h2>
+          <h2>Ödeme Talebi</h2>
           <form className="form">
             <label>
               Ad Soyad
@@ -101,36 +50,35 @@ export default function Home() {
               Tutar (TL)
               <input placeholder="Örn: 200" type="number" min={50} name="amount" />
             </label>
-            <button type="submit">Ödeme Talebi Oluştur</button>
+            <button type="submit">Talep Gönder</button>
           </form>
-        </article>
-
-        <article className="card">
-          <h2>Admin Ödeme Talepleri</h2>
-          <ul className="requestList">
-            {payoutRequests.map((request) => (
-              <li key={request.user}>
-                <div>
-                  <strong>{request.user}</strong>
-                  <small>{request.iban}</small>
-                </div>
-                <div>
-                  <strong>{request.amount}</strong>
-                  <small>{request.status}</small>
-                </div>
-              </li>
-            ))}
-          </ul>
         </article>
       </section>
 
-      <section className="note card">
-        <h2>Politika Notu</h2>
-        <p>
-          Bu platform tasarımı, yalnızca gerçek müşteri geri bildirimi toplama ve hizmet
-          kalitesini ölçme amacıyla kurgulanmıştır. Değerlendirme ödülü, olumlu yorum
-          şartına bağlanmamalıdır.
-        </p>
+      <section className="card">
+        <h2>Bugünkü Uygun Görevler</h2>
+        <div className="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>İşletme</th>
+                <th>Şehir</th>
+                <th>Ödül</th>
+                <th>Durum</th>
+              </tr>
+            </thead>
+            <tbody>
+              {availableTasks.map((task) => (
+                <tr key={task.business}>
+                  <td>{task.business}</td>
+                  <td>{task.city}</td>
+                  <td>{task.reward}</td>
+                  <td>{task.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
     </main>
   );
