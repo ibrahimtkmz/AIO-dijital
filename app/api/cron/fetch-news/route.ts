@@ -1,0 +1,3 @@
+import { NextRequest, NextResponse } from 'next/server'; import { cronAuthorized } from '@/lib/security/admin'; import { fetchActiveSources } from '@/lib/news/service';
+export const runtime='nodejs'; export const dynamic='force-dynamic';
+export async function GET(request: NextRequest) { if (!cronAuthorized(request.headers.get('authorization'))) return NextResponse.json({error:'UNAUTHORIZED'},{status:401}); try { return NextResponse.json(await fetchActiveSources()); } catch (error) { return NextResponse.json({error:'NEWS_FETCH_ERROR',message:error instanceof Error ? error.message:'Haber taraması başarısız.'},{status:500}); } }

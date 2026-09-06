@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum NewsStatus { DISCOVERED PROCESSING AI_READY CANVA_PROCESSING VIDEO_READY YOUTUBE_UPLOADING PUBLISHED FAILED SKIPPED }
+enum ScrapingMethod { RSS API HTML }
+enum JobStatus { RUNNING SUCCEEDED FAILED SKIPPED }
+
+model NewsSource {
+  id String @id @default(cuid())
+  name String
+  url String
+  rssUrl String? @unique
+  active Boolean @default(true)
+  category String?
+  scrapingMethod ScrapingMethod @default(RSS)
+  priority Int @default(100)
+  news News[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([active, priority])
+}
+
+model News {
+  id String @id @default(cuid())
+  sourceId String
+  source NewsSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  externalId String?
+  url String @unique
+  title String
+  originalTitle String
+  content String
+  summary String?
+  imageUrl String?
+  category String?
+  publishedAt DateTime?
+  discoveredAt DateTime @default(now())
+  processedAt DateTime?
+  status NewsStatus @default(DISCOVERED)
+  hash String @unique
+  processingStartedAt DateTime?
+  retryCount Int @default(0)
+  lastError String?
+  youtubeVideoId String? @unique
+  youtubeUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  logs JobLog[]
+  @@unique([sourceId, externalId])
+  @@index([status, discoveredAt])
+}
+
+model JobLog {
+  id String @id @default(cuid())
+  newsId String?
+  news News? @relation(fields: [newsId], references: [id], onDelete: SetNull)
+  jobType String
+  status JobStatus
+  message String
+  error String?
+  startedAt DateTime @default(now())
+  finishedAt DateTime?
+  duration Int?
+  @@index([newsId, startedAt])
+}

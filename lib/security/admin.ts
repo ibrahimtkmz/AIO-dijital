@@ -1,0 +1,3 @@
+import { timingSafeEqual } from 'crypto';
+export function hasAdminAccess(header: string | null) { const secret=process.env.ADMIN_SECRET; if (!secret || !header?.startsWith('Bearer ')) return false; const supplied=Buffer.from(header.slice(7)); const expected=Buffer.from(secret); return supplied.length === expected.length && timingSafeEqual(supplied, expected); }
+export function cronAuthorized(header: string | null) { const secret=process.env.CRON_SECRET; if (!secret || !header?.startsWith('Bearer ')) return false; const supplied=Buffer.from(header.slice(7)); const expected=Buffer.from(secret); return supplied.length === expected.length && timingSafeEqual(supplied, expected); }
