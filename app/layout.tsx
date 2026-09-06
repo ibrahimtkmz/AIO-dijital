@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'AIO Dijital | Geri Bildirim Ödül Paneli',
+  title: 'AIO Dijital | Otomatik Haber Operasyon Merkezi',
   description:
-    'Gerçek müşteri geri bildirimi toplayan, kullanıcı cüzdanı ve ödeme talebi süreçlerini yöneten panel.',
+    'RSS haberlerini güvenli biçimde keşfeden ve video otomasyonuna hazırlayan yönetim platformu.',
 };
 
 export default function RootLayout({

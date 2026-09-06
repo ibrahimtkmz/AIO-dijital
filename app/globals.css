@@ -157,3 +157,16 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+.admin-page { max-width: 1180px; }
+.admin-metrics { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.admin-metrics .card { display: grid; gap: 8px; }
+.admin-metrics strong { font-size: 1.8rem; }
+.section-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 12px; }
+.section-heading h2 { margin: 0; }
+.status { color: #7ae3cc; font-weight: 700; font-size: .78rem; }
+td a { color: #c8d7ff; text-decoration: none; } td a:hover { text-decoration: underline; }
+.action-message { margin: 10px 0 0; font-size: .88rem; }
+button:disabled { cursor: wait; opacity: .65; }
+@media (max-width: 980px) { .admin-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 620px) { .admin-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } .section-heading { align-items: flex-start; flex-direction: column; } }
