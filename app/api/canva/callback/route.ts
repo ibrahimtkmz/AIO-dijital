@@ -9,8 +9,16 @@ export async function GET(request: NextRequest) {
   const error = request.nextUrl.searchParams.get("error");
 
   if (error) {
+    const description =
+      request.nextUrl.searchParams.get("error_description") ||
+      request.nextUrl.searchParams.get("error_reason") ||
+      error;
+    console.error("[canva/callback] Canva authorization error:", error, description);
     return NextResponse.redirect(
-      new URL(`/haber-otomasyonu?canva=error&message=${encodeURIComponent(error)}`, request.url),
+      new URL(
+        `/haber-otomasyonu?canva=error&message=${encodeURIComponent(description)}`,
+        request.url,
+      ),
     );
   }
 
