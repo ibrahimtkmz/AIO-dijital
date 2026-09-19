@@ -2,29 +2,29 @@ import { NewsItem } from "./types";
 
 function stripHtml(value: string) {
   return value
-    .replace(/<script[\\s\\S]*?<\\/script>/gi, " ")
-    .replace(/<style[\\s\\S]*?<\\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<[^>]*>/g, " ")
     .replace(/&nbsp;/gi, " ")
     .replace(/&amp;/gi, "&")
     .replace(/&quot;/gi, '"')
     .replace(/&#39;/gi, "'")
-    .replace(/\\s+/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
 function firstTag(xml: string, tag: string) {
-  const m = xml.match(new RegExp("<" + tag + "[^>]*>([\\s\\S]*?)</" + tag + ">", "i"));
-  return m?.[1]?.replace(/<!\\[CDATA\\[|\\]\\]>/g, "").trim() || "";
+  const m = xml.match(new RegExp("<" + tag + "[^>]*>([\s\S]*?)</" + tag + ">", "i"));
+  return m?.[1]?.replace(/<!\[CDATA\[|\]\]>/g, "").trim() || "";
 }
 
 function imageFromItem(item: string) {
-  const m = item.match(/<media:content[^>]+url=["\\']([^"\\']+)["\\']/i);
+  const m = item.match(/<media:content[^>]+url=["']([^"']+)["']/i);
   if (m?.[1]) return m[1];
-  const e = item.match(/<enclosure[^>]+url=["\\']([^"\\']+)["\\']/i);
+  const e = item.match(/<enclosure[^>]+url=["']([^"']+)["']/i);
   if (e?.[1]) return e[1];
   const h = firstTag(item, "description");
-  return h.match(/<img[^>]+src=["\\']([^"\\']+)["\\']/i)?.[1] || "";
+  return h.match(/<img[^>]+src=["']([^"']+)["']/i)?.[1] || "";
 }
 
 async function fetchHtmlNews(pageUrl: string, limit = 10): Promise<NewsItem[]> {
@@ -44,9 +44,7 @@ async function fetchHtmlNews(pageUrl: string, limit = 10): Promise<NewsItem[]> {
   const base = new URL(pageUrl);
   const seen = new Set<string>();
   const results: NewsItem[] = [];
-
-  // SonDakika'nın güncel ana sayfasındaki haber bağlantılarını yakala.
-  const linkRegex = /<a\\b[^>]*href=["\\']([^"\\']+)["\\'][^>]*>([\\s\\S]*?)<\\/a>/gi;
+  const linkRegex = /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
 
   for (const match of html.matchAll(linkRegex)) {
     const href = match[1];
@@ -64,22 +62,22 @@ async function fetchHtmlNews(pageUrl: string, limit = 10): Promise<NewsItem[]> {
     }
 
     if (url.hostname !== base.hostname) continue;
-    if (!/\\/(haber|son-dakika-haberleri)\\//i.test(url.pathname)) continue;
+    if (!/\/(haber|son-dakika-haberleri)\//i.test(url.pathname)) continue;
     if (seen.has(url.href)) continue;
 
     seen.add(url.href);
 
-    let imageUrl = "";
-    const parentChunk = html.slice(Math.max(0, match.index ?? 0 - 1200), Math.min(html.length, (match.index ?? 0) + raw.length + 1200));
-    imageUrl =
-      parentChunk.match(/<img[^>]+(?:src|data-src)=["\\']([^"\\']+)["\\']/i)?.[1] || "";
+    const offset = match.index ?? 0;
+    const parentChunk = html.slice(Math.max(0, offset - 1200), Math.min(html.length, offset + raw.length + 1200));
+    const imageUrl =
+      parentChunk.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i)?.[1] || "";
 
     results.push({
       sourceUrl: url.href,
       title,
       content: title,
       imageUrl: imageUrl ? new URL(imageUrl, base).href : "",
-      source: base.hostname.replace(/^www\\./, ""),
+      source: base.hostname.replace(/^www\./, ""),
       publishedAt: new Date().toISOString(),
     });
 
@@ -100,7 +98,7 @@ export async function fetchRssNews(feedUrl: string, limit = 10): Promise<NewsIte
 
   if (response.ok) {
     const xml = await response.text();
-    const items = [...xml.matchAll(/<(item|entry)[^>]*>[\\s\\S]*?<\\/(?:item|entry)>/gi)]
+    const items = [...xml.matchAll(/<(item|entry)[^>]*>[\s\S]*?<\/(?:item|entry)>/gi)]
       .map((m) => m[0])
       .slice(0, limit);
 
@@ -109,7 +107,7 @@ export async function fetchRssNews(feedUrl: string, limit = 10): Promise<NewsIte
         const title = stripHtml(firstTag(item, "title"));
         const link =
           firstTag(item, "link") ||
-          item.match(/<link[^>]+href=["\\']([^"\\']+)["\\']/i)?.[1] ||
+          item.match(/<link[^>]+href=["']([^"']+)["']/i)?.[1] ||
           "";
         const content = stripHtml(
           firstTag(item, "description") ||
@@ -127,7 +125,7 @@ export async function fetchRssNews(feedUrl: string, limit = 10): Promise<NewsIte
           title,
           content,
           imageUrl: imageFromItem(item),
-          source: new URL(feedUrl).hostname.replace(/^www\\./, ""),
+          source: new URL(feedUrl).hostname.replace(/^www\./, ""),
           publishedAt,
         };
       })
@@ -136,6 +134,5 @@ export async function fetchRssNews(feedUrl: string, limit = 10): Promise<NewsIte
     if (parsed.length) return parsed;
   }
 
-  // RSS endpointi erişilemiyorsa SonDakika ana sayfasından devam et.
   return fetchHtmlNews("https://www.sondakika.com/", limit);
 }
