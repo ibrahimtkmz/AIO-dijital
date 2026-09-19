@@ -12,7 +12,8 @@
     "next": "14.2.25",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "lucide-react": "^0.511.0",\n    "@googleapis/youtube": "^20.0.0"
+    "lucide-react": "^0.511.0",
+    "@googleapis/youtube": "^20.0.0"
   },
   "devDependencies": {
     "@types/node": "20.17.57",
