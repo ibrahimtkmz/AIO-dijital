@@ -18,6 +18,7 @@ type YoutubeState = {
 
 type CanvaState = {
   connected: boolean;
+  error?: string;
 };
 
 export default function Page() {
@@ -54,9 +55,6 @@ export default function Page() {
     }
   }
 
-  function connectCanva() {
-    window.location.assign("/api/canva/auth");
-  }
 
   function connectYoutube() {
     window.location.assign("/api/youtube/auth");
@@ -76,7 +74,7 @@ export default function Page() {
           {loading ? "İşleniyor..." : "Yeni Haberleri Getir"}
         </button>
         <button type="button" onClick={connectYoutube}>YouTube&apos;u Bağla</button>
-        <button type="button" onClick={connectCanva}>Canva&apos;yı Bağla</button>
+        <a href="/api/canva/auth" style={{ display: "inline-block", padding: "6px 10px", border: "1px solid #ccc", borderRadius: 6, textDecoration: "none", color: "inherit" }}>Canva&apos;yı Bağla</a>
       </div>
 
       <div style={{ padding: 16, border: "1px solid #ddd", borderRadius: 10, marginBottom: 20 }}>
@@ -88,7 +86,7 @@ export default function Page() {
         </div>
         <div style={{ marginTop: 8 }}>
           <strong>Canva: </strong>
-          {canva.connected ? "Bağlı" : "Bağlı değil"}
+          {canva.connected ? "Bağlı" : `Bağlı değil${canva.error ? ` — ${canva.error}` : ""}`}
         </div>
       </div>
 
