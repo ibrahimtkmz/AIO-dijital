@@ -1,1 +1,9 @@
-{"crons":[{"path":"/api/news/process","schedule":"0 12 * * *"}]}
+{
+  "outputDirectory": ".next",
+  "crons": [
+    {
+      "path": "/api/news/process",
+      "schedule": "0 12 * * *"
+    }
+  ]
+}
