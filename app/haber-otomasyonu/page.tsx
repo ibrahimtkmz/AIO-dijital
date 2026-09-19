@@ -29,7 +29,7 @@ export default function Page() {
   const [canva, setCanva] = useState<CanvaState>({ connected: false });
 
   async function refresh() {
-    const [newsResponse, youtubeResponse, canvaResponse] = await Promise.all([
+    const [newsResponse, youtubeResponse] = await Promise.all([
       fetch("/api/news/status", { cache: "no-store" }),
       fetch("/api/youtube/status", { cache: "no-store" }),
       fetch("/api/canva/status", { cache: "no-store" }),
@@ -67,7 +67,7 @@ export default function Page() {
   return (
     <main style={{ maxWidth: 1100, margin: "40px auto", padding: 20, fontFamily: "Arial, sans-serif" }}>
       <h1>Haber Otomasyonu</h1>
-      <p>RSS → AI → Canva → YouTube</p>
+      <p>RSS → AI → Creatomate → YouTube</p>
 
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", margin: "24px 0" }}>
         <button onClick={processNews} disabled={loading}>
