@@ -84,7 +84,7 @@ export function createCanvaAuthorization() {
   const challenge = crypto.createHash("sha256").update(verifier).digest("base64url");
   const state = crypto.randomBytes(32).toString("base64url");
   const redirectUri = required("CANVA_REDIRECT_URI");
-  const scopes = process.env.CANVA_SCOPES || DEFAULT_SCOPES.join(" ");
+  const scopes = DEFAULT_SCOPES.join(" ");
 
   const url = new URL("https://www.canva.com/api/oauth/authorize");
   url.searchParams.set("code_challenge", challenge);
