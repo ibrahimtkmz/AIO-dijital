@@ -58,6 +58,7 @@ async function saveToken(token: StoredToken) {
   await put(TOKEN_PATH, encrypt(JSON.stringify(token)), {
     access: "private",
     allowOverwrite: true,
+    addRandomSuffix: false,
   });
 }
 
