@@ -115,7 +115,7 @@ export async function exportCanvaMp4(designId: string) {
     method: "POST",
     body: JSON.stringify({
       design_id: designId,
-      format: { type: "mp4" },
+      format: { type: "mp4", quality: "vertical_1080p" },
     }),
   });
 
