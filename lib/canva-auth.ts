@@ -13,6 +13,9 @@ const DEFAULT_SCOPES = [
   "design:meta:read",
   "asset:read",
   "asset:write",
+  "brandtemplate:meta:read",
+  "brandtemplate:content:read",
+  "profile:read",
 ];
 
 type StoredToken = {
