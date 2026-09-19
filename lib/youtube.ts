@@ -106,7 +106,8 @@ export async function getYoutubeChannel() {
 }
 
 export type YoutubeUploadInput = {
-  videoUrl: string;
+  videoUrl?: string;
+  videoPath?: string;
   title: string;
   description: string;
   tags?: string[];
@@ -116,13 +117,23 @@ export type YoutubeUploadInput = {
 
 export async function uploadYoutubeVideo(input: YoutubeUploadInput) {
   const accessToken = await getYoutubeAccessToken();
-  const videoResponse = await fetch(input.videoUrl, { cache: "no-store" });
-  if (!videoResponse.ok) {
-    throw new Error(`Canva MP4 indirilemedi: HTTP ${videoResponse.status}`);
-  }
+  let videoBuffer: ArrayBuffer;
+  let contentType = "video/mp4";
 
-  const videoBuffer = await videoResponse.arrayBuffer();
-  const contentType = videoResponse.headers.get("content-type") || "video/mp4";
+  if (input.videoPath) {
+    const { readFile } = await import("node:fs/promises");
+    const file = await readFile(input.videoPath);
+    videoBuffer = file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength);
+  } else if (input.videoUrl) {
+    const videoResponse = await fetch(input.videoUrl, { cache: "no-store" });
+    if (!videoResponse.ok) {
+      throw new Error(`MP4 indirilemedi: HTTP ${videoResponse.status}`);
+    }
+    videoBuffer = await videoResponse.arrayBuffer();
+    contentType = videoResponse.headers.get("content-type") || "video/mp4";
+  } else {
+    throw new Error("videoPath veya videoUrl gerekli.");
+  }
   const metadata = {
     snippet: {
       title: input.title.slice(0, 100),
