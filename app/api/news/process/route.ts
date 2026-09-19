@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { fetchRssNews } from "@/lib/news/rss";
 import { rewriteForSocial } from "@/lib/news/ai";
-import { createCanvaDesign, exportCanvaMp4 } from "@/lib/news/canva";
+import { createCreatomateVideo } from "@/lib/news/creatomate";
 import { hasNews, saveNews } from "@/lib/news/store";
 import { uploadYoutubeVideo } from "@/lib/youtube";
 
@@ -29,15 +29,13 @@ export async function POST() {
 
       try {
         const social = await rewriteForSocial(item);
-        const canva = await createCanvaDesign(social);
+        const video = await createCreatomateVideo(social);
         let youtube: { videoId: string; url?: string } | undefined;
 
         if (process.env.AUTO_PUBLISH === "true") {
-          if (canva.mode !== "live") throw new Error("AUTO_PUBLISH=true için CANVA_ACCESS_TOKEN gerekli.");
-          const mp4 = await exportCanvaMp4(canva.designId);
-          if (mp4.mode !== "live") throw new Error("Canva MP4 export canlı değil.");
+          
           youtube = await uploadYoutubeVideo({
-            videoUrl: mp4.downloadUrl,
+            videoUrl: video.downloadUrl,
             title: social.socialTitle,
             description: social.socialText,
             tags: ["haber", "gündem", "shorts"],
@@ -46,7 +44,7 @@ export async function POST() {
           });
         }
 
-        results.push({ item, social, canva, youtube });
+        results.push({ item, social, video, youtube });
         saveNews({
           sourceUrl: item.sourceUrl,
           title: item.title,
@@ -54,7 +52,7 @@ export async function POST() {
           imageUrl: item.imageUrl,
           status: youtube ? "youtube_published" : "ready",
           updatedAt: new Date().toISOString(),
-          canvaDesignId: canva.designId,
+          
           youtubeVideoId: youtube?.videoId,
         });
       } catch (e) {
