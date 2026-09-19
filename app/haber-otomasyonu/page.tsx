@@ -16,21 +16,29 @@ type YoutubeState = {
   error?: string;
 };
 
+type CanvaState = {
+  connected: boolean;
+};
+
 export default function Page() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
   const [youtube, setYoutube] = useState<YoutubeState>({ connected: false });
+  const [canva, setCanva] = useState<CanvaState>({ connected: false });
 
   async function refresh() {
     const [newsResponse, youtubeResponse] = await Promise.all([
       fetch("/api/news/status", { cache: "no-store" }),
       fetch("/api/youtube/status", { cache: "no-store" }),
+      fetch("/api/canva/status", { cache: "no-store" }),
     ]);
     const newsData = await newsResponse.json();
     const youtubeData = await youtubeResponse.json();
+    const canvaData = await canvaResponse.json();
     setItems(newsData.items || []);
     setYoutube(youtubeData);
+    setCanva(canvaData);
   }
 
   async function processNews() {
@@ -62,13 +70,22 @@ export default function Page() {
         <a href="/api/youtube/auth">
           <button type="button">YouTube&apos;u Bağla</button>
         </a>
+        <a href="/api/canva/auth">
+          <button type="button">Canva&apos;yı Bağla</button>
+        </a>
       </div>
 
       <div style={{ padding: 16, border: "1px solid #ddd", borderRadius: 10, marginBottom: 20 }}>
-        <strong>YouTube: </strong>
-        {youtube.connected
-          ? `Bağlı — ${youtube.channel?.title || "kanal"}`
-          : `Bağlı değil${youtube.error ? ` — ${youtube.error}` : ""}`}
+        <div>
+          <strong>YouTube: </strong>
+          {youtube.connected
+            ? `Bağlı — ${youtube.channel?.title || "kanal"}`
+            : `Bağlı değil${youtube.error ? ` — ${youtube.error}` : ""}`}
+        </div>
+        <div style={{ marginTop: 8 }}>
+          <strong>Canva: </strong>
+          {canva.connected ? "Bağlı" : "Bağlı değil"}
+        </div>
       </div>
 
       <p>{msg}</p>
