@@ -3,8 +3,7 @@ import { cookies } from "next/headers";
 import { get, put } from "@vercel/blob";
 
 const TOKEN_PATH = "canva/oauth-token.json";
-const STATE_COOKIE = "canva_oauth_state";
-const VERIFIER_COOKIE = "canva_oauth_verifier";
+const OAUTH_COOKIE = "canva_oauth_session";
 const API = "https://api.canva.com/rest/v1";
 const DEFAULT_SCOPES = [
   "design:content:read",
@@ -101,14 +100,8 @@ export function createCanvaAuthorization() {
 
 export async function storeOAuthCookies(state: string, verifier: string) {
   const jar = cookies();
-  jar.set(STATE_COOKIE, state, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    maxAge: 600,
-    path: "/",
-  });
-  jar.set(VERIFIER_COOKIE, verifier, {
+  const payload = Buffer.from(JSON.stringify({ state, verifier }), "utf8").toString("base64url");
+  jar.set(OAUTH_COOKIE, payload, {
     httpOnly: true,
     secure: true,
     sameSite: "lax",
@@ -119,8 +112,20 @@ export async function storeOAuthCookies(state: string, verifier: string) {
 
 export async function exchangeCanvaCode(code: string, state: string) {
   const jar = cookies();
-  const savedState = jar.get(STATE_COOKIE)?.value;
-  const verifier = jar.get(VERIFIER_COOKIE)?.value;
+  const rawSession = jar.get(OAUTH_COOKIE)?.value;
+  let savedState = "";
+  let verifier = "";
+
+  try {
+    const session = JSON.parse(
+      Buffer.from(rawSession || "", "base64url").toString("utf8"),
+    ) as { state?: string; verifier?: string };
+    savedState = session.state || "";
+    verifier = session.verifier || "";
+  } catch {
+    // Invalid or missing OAuth session cookie.
+  }
+
   const stateMatches =
     !!savedState &&
     !!verifier &&
@@ -128,7 +133,7 @@ export async function exchangeCanvaCode(code: string, state: string) {
     crypto.timingSafeEqual(Buffer.from(savedState), Buffer.from(state));
 
   if (!stateMatches) {
-    throw new Error("Canva OAuth state doğrulanamadı.");
+    throw new Error("Canva OAuth oturumu doğrulanamadı. Lütfen bağlantıyı aynı cihazda yeniden başlatın.");
   }
 
   const body = new URLSearchParams({
@@ -159,8 +164,7 @@ export async function exchangeCanvaCode(code: string, state: string) {
     expires_at: Date.now() + Number(data.expires_in || 14400) * 1000,
   });
 
-  jar.delete(STATE_COOKIE);
-  jar.delete(VERIFIER_COOKIE);
+  jar.delete(OAUTH_COOKIE);
 }
 
 export async function getCanvaAccessToken() {
