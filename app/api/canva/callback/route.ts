@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/haber-otomasyonu?canva=connected", request.url));
   } catch (e) {
     const message = e instanceof Error ? e.message : "Canva bağlantısı başarısız.";
+    console.error("[canva/callback]", message);
     return NextResponse.redirect(
       new URL(`/haber-otomasyonu?canva=error&message=${encodeURIComponent(message)}`, request.url),
     );
