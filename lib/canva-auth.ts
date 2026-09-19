@@ -5,14 +5,14 @@ import { get, put } from "@vercel/blob";
 const TOKEN_PATH = "canva/oauth-token.json";
 const OAUTH_COOKIE = "canva_oauth_session";
 const API = "https://api.canva.com/rest/v1";
+// Keep the OAuth request minimal. Canva rejects any scope that is not
+// explicitly enabled for the integration in the Developer Portal.
 const DEFAULT_SCOPES = [
   "design:content:read",
   "design:content:write",
   "design:meta:read",
   "asset:read",
   "asset:write",
-  "brandtemplate:meta:read",
-  "brandtemplate:content:read",
 ];
 
 type StoredToken = {
