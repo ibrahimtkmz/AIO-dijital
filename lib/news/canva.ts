@@ -1,4 +1,5 @@
 import { ProcessedNews } from "./types";
+import { getCanvaAccessToken } from "@/lib/canva-auth";
 
 const DESIGN_ID = process.env.CANVA_DESIGN_ID || "DAHVcVHtbvc";
 const CANVA_API = "https://api.canva.com/rest/v1";
@@ -6,8 +7,7 @@ const CANVA_API = "https://api.canva.com/rest/v1";
 type CanvaResponse = Record<string, any>;
 
 async function canvaRequest(path: string, init: RequestInit = {}): Promise<CanvaResponse> {
-  const token = process.env.CANVA_ACCESS_TOKEN;
-  if (!token) throw new Error("CANVA_ACCESS_TOKEN tanımlı değil.");
+  const token = await getCanvaAccessToken();
 
   const response = await fetch(`${CANVA_API}${path}`, {
     ...init,
@@ -58,18 +58,6 @@ async function importImageAsset(imageUrl: string, title: string): Promise<string
 }
 
 export async function createCanvaDesign(item: ProcessedNews) {
-  if (!process.env.CANVA_ACCESS_TOKEN) {
-    return {
-      mode: "dry-run" as const,
-      designId: DESIGN_ID,
-      fields: {
-        HABER_BASLIK: item.socialTitle,
-        HABER_METNI: item.socialText,
-        HABER_GORSELI: item.imageUrl,
-      },
-    };
-  }
-
   const assetId = await importImageAsset(item.imageUrl, item.socialTitle);
 
   const autofill = await canvaRequest("/autofills", {
@@ -107,10 +95,6 @@ export async function createCanvaDesign(item: ProcessedNews) {
 }
 
 export async function exportCanvaMp4(designId: string) {
-  if (!process.env.CANVA_ACCESS_TOKEN) {
-    return { mode: "dry-run" as const, designId, format: "mp4" as const };
-  }
-
   const created = await canvaRequest("/exports", {
     method: "POST",
     body: JSON.stringify({
