@@ -54,6 +54,14 @@ export default function Page() {
     }
   }
 
+  function connectCanva() {
+    window.location.assign("/api/canva/auth");
+  }
+
+  function connectYoutube() {
+    window.location.assign("/api/youtube/auth");
+  }
+
   useEffect(() => {
     refresh();
   }, []);
@@ -67,12 +75,8 @@ export default function Page() {
         <button onClick={processNews} disabled={loading}>
           {loading ? "İşleniyor..." : "Yeni Haberleri Getir"}
         </button>
-        <a href="/api/youtube/auth">
-          <button type="button">YouTube&apos;u Bağla</button>
-        </a>
-        <a href="/api/canva/auth">
-          <button type="button">Canva&apos;yı Bağla</button>
-        </a>
+        <button type="button" onClick={connectYoutube}>YouTube&apos;u Bağla</button>
+        <button type="button" onClick={connectCanva}>Canva&apos;yı Bağla</button>
       </div>
 
       <div style={{ padding: 16, border: "1px solid #ddd", borderRadius: 10, marginBottom: 20 }}>
