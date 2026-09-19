@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { fetchRssNews } from "@/lib/news/rss";
 import { rewriteForSocial } from "@/lib/news/ai";
-import { createCreatomateVideo } from "@/lib/news/creatomate";
+import { createNewsVideo } from "@/lib/news/video";
 import { hasNews, saveNews } from "@/lib/news/store";
 import { uploadYoutubeVideo } from "@/lib/youtube";
 
@@ -29,13 +29,12 @@ export async function POST() {
 
       try {
         const social = await rewriteForSocial(item);
-        const video = await createCreatomateVideo(social);
+        const video = await createNewsVideo(social);
         let youtube: { videoId: string; url?: string } | undefined;
 
         if (process.env.AUTO_PUBLISH === "true") {
-          
           youtube = await uploadYoutubeVideo({
-            videoUrl: video.downloadUrl,
+            videoPath: video.videoPath,
             title: social.socialTitle,
             description: social.socialText,
             tags: ["haber", "gündem", "shorts"],
@@ -44,7 +43,7 @@ export async function POST() {
           });
         }
 
-        results.push({ item, social, video, youtube });
+        results.push({ item, social, video: { ...video, videoPath: undefined }, youtube });
         saveNews({
           sourceUrl: item.sourceUrl,
           title: item.title,
@@ -52,7 +51,6 @@ export async function POST() {
           imageUrl: item.imageUrl,
           status: youtube ? "youtube_published" : "ready",
           updatedAt: new Date().toISOString(),
-          
           youtubeVideoId: youtube?.videoId,
         });
       } catch (e) {
