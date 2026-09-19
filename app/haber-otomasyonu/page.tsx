@@ -58,7 +58,7 @@ export default function Page() {
   return (
     <main style={{ maxWidth: 1100, margin: "40px auto", padding: 20, fontFamily: "Arial, sans-serif" }}>
       <h1>Haber Otomasyonu</h1>
-      <p>RSS → AI → Creatomate → YouTube</p>
+      <p>RSS → AI → CapCut → YouTube</p>
 
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", margin: "24px 0" }}>
         <button onClick={processNews} disabled={loading}>
