@@ -28,7 +28,7 @@ export default function Page() {
   const [canva, setCanva] = useState<CanvaState>({ connected: false });
 
   async function refresh() {
-    const [newsResponse, youtubeResponse] = await Promise.all([
+    const [newsResponse, youtubeResponse, canvaResponse] = await Promise.all([
       fetch("/api/news/status", { cache: "no-store" }),
       fetch("/api/youtube/status", { cache: "no-store" }),
       fetch("/api/canva/status", { cache: "no-store" }),
