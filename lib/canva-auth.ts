@@ -120,7 +120,13 @@ export async function exchangeCanvaCode(code: string, state: string) {
   const jar = cookies();
   const savedState = jar.get(STATE_COOKIE)?.value;
   const verifier = jar.get(VERIFIER_COOKIE)?.value;
-  if (!savedState || !verifier || !crypto.timingSafeEqual(Buffer.from(savedState), Buffer.from(state))) {
+  const stateMatches =
+    !!savedState &&
+    !!verifier &&
+    Buffer.byteLength(savedState, "utf8") === Buffer.byteLength(state, "utf8") &&
+    crypto.timingSafeEqual(Buffer.from(savedState), Buffer.from(state));
+
+  if (!stateMatches) {
     throw new Error("Canva OAuth state doğrulanamadı.");
   }
 
