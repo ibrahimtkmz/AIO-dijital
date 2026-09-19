@@ -6,8 +6,13 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     await getCanvaAccessToken();
-    return NextResponse.json({ connected: true });
-  } catch {
-    return NextResponse.json({ connected: false });
+    return NextResponse.json({ connected: true }, { headers: { "Cache-Control": "no-store" } });
+  } catch (e) {
+    const error = e instanceof Error ? e.message : "Canva bağlantısı kontrol edilemedi.";
+    console.error("[canva/status]", error);
+    return NextResponse.json(
+      { connected: false, error },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   }
 }
