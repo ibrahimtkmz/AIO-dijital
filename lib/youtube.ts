@@ -1,4 +1,7 @@
-const YOUTUBE_SCOPE = "https://www.googleapis.com/auth/youtube.upload";
+const YOUTUBE_SCOPES = [
+  "https://www.googleapis.com/auth/youtube.upload",
+  "https://www.googleapis.com/auth/youtube.readonly",
+].join(" ");
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const YOUTUBE_UPLOAD_URL = "https://www.googleapis.com/upload/youtube/v3/videos";
@@ -28,7 +31,7 @@ export function createYoutubeAuthUrl(state: string) {
     response_type: "code",
     access_type: "offline",
     prompt: "consent",
-    scope: YOUTUBE_SCOPE,
+    scope: YOUTUBE_SCOPES,
     state,
   });
   return `${GOOGLE_AUTH_URL}?${params.toString()}`;
