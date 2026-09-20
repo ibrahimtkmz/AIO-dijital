@@ -11,6 +11,7 @@ const WIDTH = 1080;
 const HEIGHT = 1920;
 const FPS = 30;
 const TEMPLATE_DURATION = 6.0666666667;
+const MUSIC_BLOB_PATH = "news/music/golden-brown.mp3";
 
 const TEMPLATE = {
   imageLeft: 92,
@@ -60,6 +61,32 @@ async function downloadPrivateTemplate(pathname: string, target: string) {
   await fs.writeFile(target, buffer);
 }
 
+async function downloadMusic(target: string) {
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+  if (!token) throw new Error("Vercel Blob tokenı tanımlı değil.");
+
+  const result = await get(MUSIC_BLOB_PATH, {access: "private", token});
+  if (!result || result.statusCode !== 200 || !result.stream) {
+    throw new Error("Golden Brown müzik dosyası Blob içinde bulunamadı. Lütfen MP3'ü bir kez yükleyin.");
+  }
+
+  const reader = result.stream.getReader();
+  const chunks: Buffer[] = [];
+  try {
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      if (value) chunks.push(Buffer.from(value));
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const buffer = Buffer.concat(chunks);
+  if (!buffer.length) throw new Error("Golden Brown müzik dosyası boş.");
+  await fs.writeFile(target, buffer);
+}
+
 async function downloadTemplate(target: string) {
   const templateUrl = process.env.NEWS_TEMPLATE_VIDEO_URL?.trim();
   if (templateUrl) {
@@ -86,6 +113,7 @@ export async function createNewsVideo(item: ProcessedNews) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "aio-news-remotion-"));
   const templatePath = path.join(dir, "template.mp4");
   const imagePath = path.join(dir, "news-image.png");
+  const musicPath = path.join(dir, "golden-brown.mp3");
   const outputPath = path.join(os.tmpdir(), `aio-news-${Date.now()}-${Math.random().toString(36).slice(2)}.mp4`);
 
   const sandbox = await createSandbox({
@@ -96,6 +124,7 @@ export async function createNewsVideo(item: ProcessedNews) {
   try {
     console.log("[video] remotion sandbox created", {sandboxId: sandbox.sandboxId});
     await downloadTemplate(templatePath);
+    await downloadMusic(musicPath);
     await download(item.imageUrl, path.join(dir, "source-image"));
     
     await sharp(path.join(dir, "source-image"))
@@ -122,6 +151,10 @@ export async function createNewsVideo(item: ProcessedNews) {
       {
         path: "/vercel/sandbox/remotion-bundle/public/news-image.png",
         content: await fs.readFile(imagePath),
+      },
+      {
+        path: "/vercel/sandbox/remotion-bundle/public/golden-brown.mp3",
+        content: await fs.readFile(musicPath),
       },
     ]);
 
