@@ -1,6 +1,5 @@
 "use client";
 
-import { upload } from "@vercel/blob/client";
 import { useEffect, useState } from "react";
 
 type Item = {
@@ -57,16 +56,20 @@ export default function Page() {
     setTemplateMessage("Şablon doğrudan Vercel Blob'a yükleniyor...");
 
     try {
-      const blob = await upload(`news/template-${Date.now()}.mp4`, file, {
-        access: "public",
-        handleUploadUrl: "/api/news/template/upload",
-        multipart: true,
-        onUploadProgress: (event) => {
-          setTemplateMessage(`Şablon yükleniyor... %${Math.round(event.percentage)}`);
-        },
+      const form = new FormData();
+      form.append("file", file);
+
+      const response = await fetch("/api/news/template", {
+        method: "POST",
+        body: form,
       });
 
-      setTemplateMessage(`Boş video şablonu hazır. ${blob.url ? "Yükleme tamamlandı." : ""}`);
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Şablon yüklenemedi.");
+      }
+
+      setTemplateMessage("Boş video şablonu hazır. Yükleme tamamlandı.");
     } catch (error) {
       setTemplateMessage(
         error instanceof Error ? `Şablon yüklenemedi: ${error.message}` : "Şablon yüklenemedi.",
