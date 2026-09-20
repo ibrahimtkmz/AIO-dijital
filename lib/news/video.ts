@@ -107,11 +107,14 @@ async function downloadTemplate(target: string) {
     return;
   }
 
-  const { blobs } = await list({ prefix: "news/template", limit: 100 });
+  const { blobs } = await list({ prefix: "news/template", limit: 100, token: process.env.BLOB_READ_WRITE_TOKEN });
   const template = blobs
     .filter((blob) => blob.pathname.startsWith("news/template-") || blob.pathname === "news/template.mp4")
     .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())[0];
-  if (!template?.url) throw new Error("Haber video şablonu yüklenmemiş.");
+  if (!template?.url) {
+    console.error("[video] no template blob found", { count: blobs.length, pathnames: blobs.map((blob) => blob.pathname) });
+    throw new Error("Haber video şablonu Blob içinde bulunamadı. Lütfen yüklemenin tamamlandığını gördükten sonra tekrar deneyin.");
+  }
   await download(template.url, target);
 }
 
