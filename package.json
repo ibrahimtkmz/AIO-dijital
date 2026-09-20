@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/copy-ffmpeg.js && next build",
+    "build": "node scripts/build-remotion.mjs && next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -17,7 +17,9 @@
     "@vercel/blob": "^2.6.1",
     "sharp": "^0.34.3",
     "@vercel/sandbox": "^3.3.0",
-    "ffmpeg-static": "^5.2.0"
+    "remotion": "4.0.524",
+    "@remotion/bundler": "4.0.524",
+    "@remotion/vercel": "4.0.524"
   },
   "devDependencies": {
     "@types/node": "20.17.57",
@@ -26,6 +28,7 @@
     "autoprefixer": "10.4.20",
     "postcss": "8.4.49",
     "tailwindcss": "3.4.16",
-    "typescript": "5.6.3"
+    "typescript": "5.6.3",
+    "@remotion/renderer": "4.0.524"
   }
 }

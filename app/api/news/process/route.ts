@@ -6,6 +6,7 @@ import { hasNews, saveNews } from "@/lib/news/store";
 import { uploadYoutubeVideo } from "@/lib/youtube";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 export async function POST() {
   const feed = process.env.NEWS_RSS_URL;
