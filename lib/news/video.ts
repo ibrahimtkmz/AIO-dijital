@@ -87,6 +87,29 @@ async function downloadMusic(target: string) {
   await fs.writeFile(target, buffer);
 }
 
+async function downloadPrivateAsset(pathname: string, target: string) {
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+  if (!token) throw new Error("Vercel Blob tokenı tanımlı değil.");
+  const result = await get(pathname, {access: "private", token});
+  if (!result || result.statusCode !== 200 || !result.stream) throw new Error(`Özel Blob dosyası indirilemedi: ${pathname}`);
+  const reader = result.stream.getReader();
+  const chunks: Buffer[] = [];
+  try { while (true) { const {done, value} = await reader.read(); if (done) break; if (value) chunks.push(Buffer.from(value)); } }
+  finally { reader.releaseLock(); }
+  const buffer = Buffer.concat(chunks);
+  if (!buffer.length) throw new Error(`Özel Blob dosyası boş: ${pathname}`);
+  await fs.writeFile(target, buffer);
+}
+
+async function downloadMusic(target: string) {
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+  if (!token) throw new Error("Vercel Blob tokenı tanımlı değil.");
+  const {blobs} = await list({prefix: "news/music/", limit: 20, token});
+  const music = blobs.find((blob) => blob.pathname === "news/music/golden-brown.mp3");
+  if (!music?.pathname) throw new Error("Golden Brown müziği Blob içinde bulunamadı. Lütfen MP3 dosyasını yükleyin.");
+  await downloadPrivateAsset(music.pathname, target);
+}
+
 async function downloadTemplate(target: string) {
   const templateUrl = process.env.NEWS_TEMPLATE_VIDEO_URL?.trim();
   if (templateUrl) {
@@ -113,6 +136,7 @@ export async function createNewsVideo(item: ProcessedNews) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "aio-news-remotion-"));
   const templatePath = path.join(dir, "template.mp4");
   const imagePath = path.join(dir, "news-image.png");
+  const musicPath = path.join(dir, "golden-brown.mp3");
   const musicPath = path.join(dir, "golden-brown.mp3");
   const outputPath = path.join(os.tmpdir(), `aio-news-${Date.now()}-${Math.random().toString(36).slice(2)}.mp4`);
 
