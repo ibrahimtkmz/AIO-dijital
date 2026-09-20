@@ -5,6 +5,7 @@ import { spawn } from "node:child_process";
 import ffmpegPath from "ffmpeg-static";
 import sharp from "sharp";
 import { ProcessedNews } from "./types";
+import { get } from "@vercel/blob";
 
 const WIDTH = 1080;
 const HEIGHT = 1920;
@@ -89,6 +90,25 @@ async function download(url: string, target: string) {
   await fs.writeFile(target, Buffer.from(await response.arrayBuffer()));
 }
 
+async function downloadTemplate(target: string) {
+  const templateUrl = process.env.NEWS_TEMPLATE_VIDEO_URL?.trim();
+  if (templateUrl) {
+    await download(templateUrl, target);
+    return;
+  }
+
+  const result = await get("news/template.mp4", { access: "public", useCache: false });
+  if (!result) throw new Error("Haber video şablonu yüklenmemiş.");
+  const reader = result.stream.getReader();
+  const chunks: Buffer[] = [];
+  while (true) {
+    const part = await reader.read();
+    if (part.done) break;
+    chunks.push(Buffer.from(part.value));
+  }
+  await fs.writeFile(target, Buffer.concat(chunks));
+}
+
 function runFfmpeg(args: string[]) {
   if (!ffmpegPath) throw new Error("FFmpeg binary bulunamadı.");
   return new Promise<void>((resolve, reject) => {
@@ -104,11 +124,6 @@ function runFfmpeg(args: string[]) {
 }
 
 export async function createNewsVideo(item: ProcessedNews) {
-  const templateUrl = process.env.NEWS_TEMPLATE_VIDEO_URL?.trim();
-  if (!templateUrl) {
-    throw new Error("NEWS_TEMPLATE_VIDEO_URL tanımlı değil. İlk gönderdiğin boş video şablon olarak eklenmeli.");
-  }
-
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "aio-news-"));
   const templatePath = path.join(dir, "template.mp4");
   const sourcePath = path.join(dir, "source.jpg");
@@ -117,7 +132,7 @@ export async function createNewsVideo(item: ProcessedNews) {
   const videoPath = path.join(dir, "news.mp4");
 
   try {
-    await Promise.all([download(templateUrl, templatePath), download(item.imageUrl, sourcePath)]);
+    await Promise.all([downloadTemplate(templatePath), download(item.imageUrl, sourcePath)]);
 
     await sharp(sourcePath)
       .resize(TEMPLATE.imageWidth, TEMPLATE.imageHeight, { fit: "cover", position: "centre" })
