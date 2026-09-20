@@ -20,16 +20,16 @@ const DURATION_IN_FRAMES = 182;
 
 const TEMPLATE = {
   imageLeft: 92,
-  imageTop: 280,
-  imageWidth: 896,
-  imageHeight: 875,
+  imageTop: 300,
+  imageWidth: 900,
+  imageHeight: 384,
   titleTop: 55,
   titleWidth: 900,
   titleFontSize: 60,
-  bodyLeft: 88,
-  bodyTop: 1160,
-  bodyWidth: 904,
-  bodyHeight: 515,
+  bodyLeft: 90,
+  bodyTop: 710,
+  bodyWidth: 900,
+  bodyHeight: 768,
   bodyFontSize: 42,
 };
 
@@ -85,10 +85,10 @@ const NewsVideoFrame: React.FC<NewsVideoProps> = ({title,body}) => (
     <div style={{
       position:"absolute",left:TEMPLATE.bodyLeft,top:TEMPLATE.bodyTop,
       width:TEMPLATE.bodyWidth,height:TEMPLATE.bodyHeight,boxSizing:"border-box",
-      padding:"38px",borderRadius:22,backgroundColor:"#fff",color:"#111",
+      padding:"30px 32px",borderRadius:22,backgroundColor:"#fff",color:"#111",
       display:"flex",alignItems:"flex-start",justifyContent:"center",textAlign:"center",
     }}>
-      <TextBlock text={body.slice(0,620)} fontSize={TEMPLATE.bodyFontSize} lineHeight={52} maxLines={10}/>
+      <TextBlock text={body} fontSize={TEMPLATE.bodyFontSize} lineHeight={52} maxLines={10}/>
     </div>
   </AbsoluteFill>
 );
