@@ -105,11 +105,13 @@ export async function createNewsVideo(item: ProcessedNews) {
 
     await addBundleToSandbox({sandbox, bundleDir: path.resolve(process.cwd(), "remotion-build")});
 
-    // addBundleToSandbox places the compiled Remotion site in the sandbox bundle directory.
-    // The composition reads these two dynamic assets with staticFile().
+    await sandbox.runCommand({
+      cmd: "mkdir",
+      args: ["-p", "/vercel/sandbox/remotion-bundle/public"],
+    });
     await sandbox.writeFiles([
-      {path: "/vercel/sandbox/remotion-bundle/template.mp4", content: await fs.readFile(templatePath)},
-      {path: "/vercel/sandbox/remotion-bundle/news-image.png", content: await fs.readFile(imagePath)},
+      {path: "/vercel/sandbox/remotion-bundle/public/template.mp4", content: await fs.readFile(templatePath)},
+      {path: "/vercel/sandbox/remotion-bundle/public/news-image.png", content: await fs.readFile(imagePath)},
     ]);
 
     console.log("[video] rendering with Remotion");
