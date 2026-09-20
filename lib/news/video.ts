@@ -104,9 +104,10 @@ async function downloadTemplate(target: string) {
 }
 
 function runFfmpeg(args: string[]) {
-  if (!ffmpegPath) throw new Error("FFmpeg binary bulunamadı.");
+  const ffmpegBinary = ffmpegPath;
+  if (!ffmpegBinary) throw new Error("FFmpeg binary bulunamadı.");
   return new Promise<void>((resolve, reject) => {
-    const child = spawn(ffmpegPath, args, { stdio: ["ignore", "ignore", "pipe"] });
+    const child = spawn(ffmpegBinary, args, { stdio: ["ignore", "ignore", "pipe"] });
     let stderr = "";
     child.stderr.on("data", (chunk) => {
       stderr += chunk.toString();
