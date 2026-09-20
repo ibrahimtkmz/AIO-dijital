@@ -39,7 +39,7 @@ export async function POST() {
             description: social.socialText,
             tags: ["haber", "gündem", "shorts"],
             categoryId: "25",
-            privacyStatus: "private",
+            privacyStatus: "public",
           });
         }
 
