@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { fetchRssNews } from "@/lib/news/rss";
 import { rewriteForSocial } from "@/lib/news/ai";
 import { createNewsVideo } from "@/lib/news/video";
-import { createNewsVideoWithCapCut } from "@/lib/news/capcut";
 import { hasNews, saveNews } from "@/lib/news/store";
 import { uploadYoutubeVideo } from "@/lib/youtube";
 
@@ -30,9 +29,7 @@ export async function POST() {
 
       try {
         const social = await rewriteForSocial(item);
-        const video = process.env.VIDEO_RENDERER === "capcut"
-          ? await createNewsVideoWithCapCut(social)
-          : await createNewsVideo(social);
+        const video = await createNewsVideo(social);
         let youtube: { videoId: string; url?: string } | undefined;
 
         if (process.env.AUTO_PUBLISH === "true") {
