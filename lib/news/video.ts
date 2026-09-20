@@ -5,7 +5,7 @@ import { spawn } from "node:child_process";
 import ffmpegPath from "ffmpeg-static";
 import sharp from "sharp";
 import { ProcessedNews } from "./types";
-import { get } from "@vercel/blob";
+import { list } from "@vercel/blob";
 
 const WIDTH = 1080;
 const HEIGHT = 1920;
@@ -97,16 +97,10 @@ async function downloadTemplate(target: string) {
     return;
   }
 
-  const result = await get("news/template.mp4", { access: "public", useCache: false });
-  if (!result) throw new Error("Haber video şablonu yüklenmemiş.");
-  const reader = result.stream.getReader();
-  const chunks: Buffer[] = [];
-  while (true) {
-    const part = await reader.read();
-    if (part.done) break;
-    chunks.push(Buffer.from(part.value));
-  }
-  await fs.writeFile(target, Buffer.concat(chunks));
+  const { blobs } = await list({ prefix: "news/template.mp4", limit: 1 });
+  const template = blobs[0];
+  if (!template?.url) throw new Error("Haber video şablonu yüklenmemiş.");
+  await download(template.url, target);
 }
 
 function runFfmpeg(args: string[]) {
