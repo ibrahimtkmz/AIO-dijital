@@ -15,8 +15,8 @@
     "lucide-react": "^0.511.0",
     "@googleapis/youtube": "^20.0.0",
     "@vercel/blob": "^2.6.1",
-    "ffmpeg-static": "^5.2.0",
-    "sharp": "^0.34.3"
+    "sharp": "^0.34.3",
+    "@vercel/sandbox": "^3.3.0"
   },
   "devDependencies": {
     "@types/node": "20.17.57",
