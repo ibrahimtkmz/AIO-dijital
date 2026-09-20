@@ -85,9 +85,19 @@ function overlaySvg(item: ProcessedNews) {
 }
 
 async function download(url: string, target: string) {
-  const response = await fetch(url, { cache: "no-store" });
-  if (!response.ok) throw new Error(`Şablon/görsel indirilemedi: HTTP ${response.status}`);
-  await fs.writeFile(target, Buffer.from(await response.arrayBuffer()));
+  if (!url) throw new Error("Görsel URL'si boş.");
+  const response = await fetch(url, {
+    cache: "no-store",
+    headers: {
+      "User-Agent": "Mozilla/5.0 (compatible; AIO-Dijital/1.0; +https://aio-dijital.vercel.app)",
+      Accept: "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+    },
+  });
+  if (!response.ok) throw new Error(`Şablon/görsel indirilemedi: HTTP ${response.status} — ${url}`);
+  const buffer = Buffer.from(await response.arrayBuffer());
+  if (!buffer.length) throw new Error(`Şablon/görsel boş döndü: ${url}`);
+  await fs.writeFile(target, buffer);
+  console.log("[video] downloaded", { url, bytes: buffer.length });
 }
 
 async function downloadTemplate(target: string) {
@@ -129,7 +139,10 @@ export async function createNewsVideo(item: ProcessedNews) {
   const videoPath = path.join(dir, "news.mp4");
 
   try {
-    await Promise.all([downloadTemplate(templatePath), download(item.imageUrl, sourcePath)]);
+    console.log("[video] preparing", { imageUrl: item.imageUrl });
+    await downloadTemplate(templatePath);
+    await download(item.imageUrl, sourcePath);
+    console.log("[video] template and image ready");
 
     await sharp(sourcePath)
       .resize(TEMPLATE.imageWidth, TEMPLATE.imageHeight, { fit: "cover", position: "centre" })
@@ -143,10 +156,11 @@ export async function createNewsVideo(item: ProcessedNews) {
       "-y",
       "-stream_loop", "-1",
       "-i", templatePath,
+      "-loop", "1",
       "-i", imagePath,
       "-i", overlayPath,
       "-filter_complex",
-      `[0:v]trim=duration=${TEMPLATE_DURATION},setpts=PTS-STARTPTS[bg];[1:v]format=rgba[news];[2:v]format=rgba[ov];[bg][news]overlay=${TEMPLATE.imageLeft}:${TEMPLATE.imageTop}:shortest=1[a];[a][ov]overlay=0:0:shortest=1[v]`,
+      `[0:v]trim=duration=${TEMPLATE_DURATION},setpts=PTS-STARTPTS[bg];[1:v]format=rgba[news];[2:v]format=rgba[ov];[bg][news]overlay=${TEMPLATE.imageLeft}:${TEMPLATE.imageTop}:eof_action=repeat[a];[a][ov]overlay=0:0:eof_action=repeat[v]`,
       "-map", "[v]",
       "-t", String(TEMPLATE_DURATION),
       "-r", String(FPS),
