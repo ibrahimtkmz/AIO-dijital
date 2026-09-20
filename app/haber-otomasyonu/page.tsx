@@ -57,7 +57,7 @@ export default function Page() {
     setTemplateMessage("Şablon doğrudan Vercel Blob'a yükleniyor...");
 
     try {
-      const blob = await upload("news/template.mp4", file, {
+      const blob = await upload(`news/template-${Date.now()}.mp4`, file, {
         access: "public",
         handleUploadUrl: "/api/news/template/upload",
         multipart: true,
