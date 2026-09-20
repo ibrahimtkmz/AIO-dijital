@@ -27,7 +27,48 @@ function imageFromItem(item: string) {
   return h.match(/<img[^>]+src=["']([^"']+)["']/i)?.[1] || "";
 }
 
-async function fetchHtmlNews(pageUrl: string, limit = 10): Promise<NewsItem[]> {
+
+
+async function fetchArticleDetails(pageUrl: string) {
+  const response = await fetch(pageUrl, {
+    cache: "no-store",
+    headers: {
+      "User-Agent": "Mozilla/5.0 (compatible; AIO-Dijital/1.0; +https://aio-dijital.vercel.app)",
+      Accept: "text/html,application/xhtml+xml",
+    },
+  });
+
+  if (!response.ok) return {content: "", imageUrl: ""};
+
+  const html = await response.text();
+  const base = new URL(pageUrl);
+
+  const ogImage =
+    html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)?.[1] ||
+    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)?.[1] ||
+    "";
+
+  const articleMatch = html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i);
+  const articleText = articleMatch?.[1] || "";
+
+  const contentBlocks = articleText
+    ? [articleText]
+    : [...html.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)].map((m) => m[1]);
+
+  const content = contentBlocks
+    .map((x) => stripHtml(x))
+    .filter((x) => x.length >= 20)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return {
+    content,
+    imageUrl: ogImage ? new URL(ogImage, base).href : "",
+  };
+}
+
+async function fetchHtmlNews(pageUrl: string, limit = 1): Promise<NewsItem[]> {
   const response = await fetch(pageUrl, {
     cache: "no-store",
     headers: {
@@ -87,7 +128,7 @@ async function fetchHtmlNews(pageUrl: string, limit = 10): Promise<NewsItem[]> {
   return results;
 }
 
-export async function fetchRssNews(feedUrl: string, limit = 10): Promise<NewsItem[]> {
+export async function fetchRssNews(feedUrl: string, limit = 1): Promise<NewsItem[]> {
   const response = await fetch(feedUrl, {
     cache: "no-store",
     headers: {
@@ -102,8 +143,8 @@ export async function fetchRssNews(feedUrl: string, limit = 10): Promise<NewsIte
       .map((m) => m[0])
       .slice(0, limit);
 
-    const parsed = items
-      .map((item) => {
+    const parsed = [] as NewsItem[];
+    for (const item of items) {
         const title = stripHtml(firstTag(item, "title"));
         const link =
           firstTag(item, "link") ||
@@ -120,16 +161,17 @@ export async function fetchRssNews(feedUrl: string, limit = 10): Promise<NewsIte
           firstTag(item, "updated") ||
           new Date().toISOString();
 
-        return {
+        if (!title || !link) continue;
+        const article = await fetchArticleDetails(link);
+        parsed.push({
           sourceUrl: link,
           title,
-          content,
-          imageUrl: imageFromItem(item),
+          content: article.content,
+          imageUrl: article.imageUrl || imageFromItem(item),
           source: new URL(feedUrl).hostname.replace(/^www\./, ""),
           publishedAt,
-        };
-      })
-      .filter((x) => x.title && x.sourceUrl);
+        });
+      }
 
     if (parsed.length) return parsed;
   }
