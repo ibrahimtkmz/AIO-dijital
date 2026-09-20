@@ -9,27 +9,26 @@ import { ProcessedNews } from "./types";
 const WIDTH = 1080;
 const HEIGHT = 1920;
 const FPS = 30;
-const DURATION = 12;
+const TEMPLATE_DURATION = 6.07;
 
-// This is the code-side version of the CapCut template.
-// Once the user creates the visual template in CapCut, only these values
-// need to be adjusted to match it.
 const TEMPLATE = {
-  imageTop: 300,
-  imageHeight: 930,
-  titleTop: 80,
-  titleWidth: 920,
-  titleFontSize: 66,
+  imageLeft: 92,
+  imageTop: 280,
+  imageWidth: 896,
+  imageHeight: 875,
+  titleTop: 55,
+  titleWidth: 900,
+  titleFontSize: 60,
+  titleLineHeight: 1.15,
   titleColor: "#ffffff",
-  panelTop: 1230,
-  panelHeight: 520,
-  panelColor: "#071020",
-  bodyTop: 1285,
-  bodyFontSize: 43,
-  bodyColor: "#ffffff",
-  sourceBottom: 70,
-  sourceFontSize: 28,
-  sourceColor: "#d8dee9",
+  titleBg: "#ff2020",
+  bodyLeft: 88,
+  bodyTop: 1160,
+  bodyWidth: 904,
+  bodyHeight: 515,
+  bodyFontSize: 42,
+  bodyLineHeight: 1.24,
+  bodyColor: "#111111",
 };
 
 function escapeXml(value: string) {
@@ -45,7 +44,6 @@ function wrapText(text: string, maxChars: number) {
   const words = text.trim().split(/\s+/);
   const lines: string[] = [];
   let line = "";
-
   for (const word of words) {
     const candidate = line ? `${line} ${word}` : word;
     if (candidate.length > maxChars && line) {
@@ -55,53 +53,44 @@ function wrapText(text: string, maxChars: number) {
       line = candidate;
     }
   }
-
   if (line) lines.push(line);
   return lines;
 }
 
-function textSvg(item: ProcessedNews) {
-  const titleLines = wrapText(item.socialTitle.slice(0, 180), 25).slice(0, 4);
-  const bodyLines = wrapText(item.socialText.slice(0, 520), 43).slice(0, 9);
-  const title = titleLines
-    .map((line, index) => `<tspan x="50%" dy="${index === 0 ? 0 : TEMPLATE.titleFontSize * 1.08}">${escapeXml(line)}</tspan>`)
-    .join("");
-  const body = bodyLines
-    .map((line, index) => `<tspan x="50%" dy="${index === 0 ? 0 : TEMPLATE.bodyFontSize * 1.25}">${escapeXml(line)}</tspan>`)
-    .join("");
+function overlaySvg(item: ProcessedNews) {
+  const titleLines = wrapText(item.socialTitle.slice(0, 120), 27).slice(0, 4);
+  const bodyLines = wrapText(item.socialText.slice(0, 620), 44).slice(0, 10);
 
-  return Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
-<svg width="${WIDTH}" height="${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="${TEMPLATE.panelTop}" width="${WIDTH}" height="${TEMPLATE.panelHeight}" rx="24" fill="${TEMPLATE.panelColor}" opacity="0.94"/>
-  <text x="50%" y="${TEMPLATE.titleTop}" text-anchor="middle"
-        font-family="Arial, DejaVu Sans, sans-serif" font-size="${TEMPLATE.titleFontSize}"
-        font-weight="800" fill="${TEMPLATE.titleColor}" dominant-baseline="hanging">
-    ${title}
-  </text>
-  <text x="50%" y="${TEMPLATE.bodyTop}" text-anchor="middle"
-        font-family="Arial, DejaVu Sans, sans-serif" font-size="${TEMPLATE.bodyFontSize}"
-        font-weight="500" fill="${TEMPLATE.bodyColor}" dominant-baseline="hanging">
-    ${body}
-  </text>
-  <text x="50%" y="${HEIGHT - TEMPLATE.sourceBottom}" text-anchor="middle"
-        font-family="Arial, DejaVu Sans, sans-serif" font-size="${TEMPLATE.sourceFontSize}"
-        font-weight="500" fill="${TEMPLATE.sourceColor}">
-    Kaynak: ${escapeXml(item.source)}
-  </text>
-</svg>`);
+  const titleHeight = Math.max(92, titleLines.length * TEMPLATE.titleFontSize * TEMPLATE.titleLineHeight + 46);
+  const titleX = (WIDTH - TEMPLATE.titleWidth) / 2;
+
+  const title = titleLines.map((line, i) =>
+    `<tspan x="${WIDTH / 2}" dy="${i === 0 ? 0 : TEMPLATE.titleFontSize * TEMPLATE.titleLineHeight}">${escapeXml(line)}</tspan>`
+  ).join("");
+
+  const body = bodyLines.map((line, i) =>
+    `<tspan x="${WIDTH / 2}" dy="${i === 0 ? 0 : TEMPLATE.bodyFontSize * TEMPLATE.bodyLineHeight}">${escapeXml(line)}</tspan>`
+  ).join("");
+
+  return Buffer.from(`<svg width="${WIDTH}" height="${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
+    <rect x="${titleX}" y="${TEMPLATE.titleTop}" width="${TEMPLATE.titleWidth}" height="${titleHeight}" rx="38" fill="${TEMPLATE.titleBg}"/>
+    <text x="${WIDTH / 2}" y="${TEMPLATE.titleTop + 34}" text-anchor="middle" dominant-baseline="hanging"
+      font-family="Arial, DejaVu Sans, sans-serif" font-size="${TEMPLATE.titleFontSize}" font-weight="500" fill="${TEMPLATE.titleColor}">${title}</text>
+
+    <rect x="${TEMPLATE.bodyLeft}" y="${TEMPLATE.bodyTop}" width="${TEMPLATE.bodyWidth}" height="${TEMPLATE.bodyHeight}" rx="22" fill="#ffffff"/>
+    <text x="${WIDTH / 2}" y="${TEMPLATE.bodyTop + 42}" text-anchor="middle" dominant-baseline="hanging"
+      font-family="Arial, DejaVu Sans, sans-serif" font-size="${TEMPLATE.bodyFontSize}" font-weight="400" fill="${TEMPLATE.bodyColor}">${body}</text>
+  </svg>`);
 }
 
-async function downloadImage(url: string, filePath: string) {
-  if (!url) throw new Error("Haber görseli bulunamadı.");
+async function download(url: string, target: string) {
   const response = await fetch(url, { cache: "no-store" });
-  if (!response.ok) throw new Error(`Haber görseli indirilemedi: HTTP ${response.status}`);
-  const buffer = Buffer.from(await response.arrayBuffer());
-  await fs.writeFile(filePath, buffer);
+  if (!response.ok) throw new Error(`Şablon/görsel indirilemedi: HTTP ${response.status}`);
+  await fs.writeFile(target, Buffer.from(await response.arrayBuffer()));
 }
 
 function runFfmpeg(args: string[]) {
   if (!ffmpegPath) throw new Error("FFmpeg binary bulunamadı.");
-
   return new Promise<void>((resolve, reject) => {
     const child = spawn(ffmpegPath, args, { stdio: ["ignore", "ignore", "pipe"] });
     let stderr = "";
@@ -110,57 +99,44 @@ function runFfmpeg(args: string[]) {
       if (stderr.length > 12000) stderr = stderr.slice(-12000);
     });
     child.on("error", reject);
-    child.on("close", (code) => {
-      if (code === 0) resolve();
-      else reject(new Error(`FFmpeg başarısız oldu: ${stderr}`));
-    });
+    child.on("close", (code) => code === 0 ? resolve() : reject(new Error(`FFmpeg başarısız: ${stderr}`)));
   });
 }
 
 export async function createNewsVideo(item: ProcessedNews) {
+  const templateUrl = process.env.NEWS_TEMPLATE_VIDEO_URL?.trim();
+  if (!templateUrl) {
+    throw new Error("NEWS_TEMPLATE_VIDEO_URL tanımlı değil. İlk gönderdiğin boş video şablon olarak eklenmeli.");
+  }
+
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "aio-news-"));
+  const templatePath = path.join(dir, "template.mp4");
   const sourcePath = path.join(dir, "source.jpg");
-  const framePath = path.join(dir, "frame.png");
+  const imagePath = path.join(dir, "news-image.png");
+  const overlayPath = path.join(dir, "overlay.png");
   const videoPath = path.join(dir, "news.mp4");
 
   try {
-    await downloadImage(item.imageUrl, sourcePath);
+    await Promise.all([download(templateUrl, templatePath), download(item.imageUrl, sourcePath)]);
 
-    const image = await sharp(sourcePath)
-      .resize(WIDTH, TEMPLATE.imageHeight, { fit: "cover", position: "centre" })
+    await sharp(sourcePath)
+      .resize(TEMPLATE.imageWidth, TEMPLATE.imageHeight, { fit: "cover", position: "centre" })
       .png()
-      .toBuffer();
+      .toFile(imagePath);
 
-    const background = await sharp({
-      create: {
-        width: WIDTH,
-        height: HEIGHT,
-        channels: 4,
-        background: { r: 7, g: 16, b: 32, alpha: 1 },
-      },
-    })
-      .composite([
-        {
-          input: image,
-          left: 0,
-          top: TEMPLATE.imageTop,
-        },
-        {
-          input: textSvg(item),
-          left: 0,
-          top: 0,
-        },
-      ])
-      .png()
-      .toBuffer();
-
-    await fs.writeFile(framePath, background);
+    const overlay = await sharp(overlaySvg(item)).png().toBuffer();
+    await fs.writeFile(overlayPath, overlay);
 
     await runFfmpeg([
       "-y",
-      "-loop", "1",
-      "-i", framePath,
-      "-t", String(DURATION),
+      "-stream_loop", "-1",
+      "-i", templatePath,
+      "-i", imagePath,
+      "-i", overlayPath,
+      "-filter_complex",
+      `[0:v]trim=duration=${TEMPLATE_DURATION},setpts=PTS-STARTPTS[bg];[1:v]format=rgba[news];[2:v]format=rgba[ov];[bg][news]overlay=${TEMPLATE.imageLeft}:${TEMPLATE.imageTop}:shortest=1[a];[a][ov]overlay=0:0:shortest=1[v]`,
+      "-map", "[v]",
+      "-t", String(TEMPLATE_DURATION),
       "-r", String(FPS),
       "-c:v", "libx264",
       "-preset", "veryfast",
@@ -169,13 +145,7 @@ export async function createNewsVideo(item: ProcessedNews) {
       videoPath,
     ]);
 
-    return {
-      mode: "local" as const,
-      videoPath,
-      width: WIDTH,
-      height: HEIGHT,
-      duration: DURATION,
-    };
+    return { mode: "ffmpeg" as const, videoPath, width: WIDTH, height: HEIGHT, duration: TEMPLATE_DURATION };
   } catch (error) {
     await fs.rm(dir, { recursive: true, force: true }).catch(() => undefined);
     throw error;
