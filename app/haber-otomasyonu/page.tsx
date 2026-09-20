@@ -60,7 +60,6 @@ export default function Page() {
       const blob = await upload("news/template.mp4", file, {
         access: "public",
         handleUploadUrl: "/api/news/template/upload",
-        allowOverwrite: true,
         multipart: true,
         onUploadProgress: (event) => {
           setTemplateMessage(`Şablon yükleniyor... %${Math.round(event.percentage)}`);
