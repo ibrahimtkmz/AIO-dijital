@@ -2,6 +2,7 @@
 import React from "react";
 import {
   AbsoluteFill,
+  Audio,
   Composition,
   OffthreadVideo,
   Img,
@@ -65,6 +66,7 @@ const NewsVideoFrame: React.FC<NewsVideoProps> = ({title,body}) => (
       volume={0}
       style={{width:WIDTH,height:HEIGHT,objectFit:"cover"}}
     />
+    <Audio src={staticFile("golden-brown.mp3")} volume={0.35} />
     <Img
       src={staticFile("news-image.png")}
       style={{
