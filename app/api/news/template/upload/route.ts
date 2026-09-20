@@ -11,7 +11,7 @@ export async function POST(request: Request) {
       body,
       request,
       onBeforeGenerateToken: async (pathname) => {
-        if (!/^news\/template-\\d+\\.mp4$/.test(pathname)) {
+        if (!/^news\/template-\d+\.mp4$/.test(pathname)) {
           throw new Error("Geçersiz şablon yolu.");
         }
 
@@ -28,6 +28,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(jsonResponse);
   } catch (error) {
+    console.error("news template upload error", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : String(error) },
       { status: 400 },
