@@ -85,7 +85,7 @@ export async function createNewsVideo(item: ProcessedNews) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "aio-news-remotion-"));
   const templatePath = path.join(dir, "template.mp4");
   const imagePath = path.join(dir, "news-image.png");
-  const outputPath = "/tmp/news.mp4";
+  const outputPath = path.join(os.tmpdir(), `aio-news-${Date.now()}-${Math.random().toString(36).slice(2)}.mp4`);
 
   const sandbox = await createSandbox({
     resources: {vcpus: 4},
@@ -102,7 +102,7 @@ export async function createNewsVideo(item: ProcessedNews) {
       .png()
       .toFile(imagePath);
 
-    await addBundleToSandbox({sandbox, bundleDir: "remotion-build"});
+    await addBundleToSandbox({sandbox, bundleDir: path.resolve(process.cwd(), "remotion-build")});
 
     // addBundleToSandbox places the compiled Remotion site in the sandbox bundle directory.
     // The composition reads these two dynamic assets with staticFile().
@@ -126,26 +126,18 @@ export async function createNewsVideo(item: ProcessedNews) {
       pixelFormat: "yuv420p",
       concurrency: 2,
       timeoutInMilliseconds: 120000,
-      onProgress: async (progress) => {
-        if (progress.stage === "render-progress") {
-          console.log("[video] remotion progress", {
-            progress: Math.round(progress.progress.progress * 100),
-          });
-        }
-      },
     });
 
     const rendered = await sandbox.readFileToBuffer({path: render.sandboxFilePath});
     if (!rendered?.length) throw new Error("Remotion çıktı videosu boş.");
 
-    const videoPath = path.join(dir, "news.mp4");
-    await fs.writeFile(videoPath, rendered);
+    await fs.writeFile(outputPath, rendered);
 
     console.log("[video] remotion render complete", {bytes: rendered.length});
 
     return {
       mode: "remotion" as const,
-      videoPath,
+      videoPath: outputPath,
       width: WIDTH,
       height: HEIGHT,
       duration: TEMPLATE_DURATION,
