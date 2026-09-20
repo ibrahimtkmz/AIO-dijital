@@ -22,6 +22,7 @@ export default function Page() {
   const [msg, setMsg] = useState("");
   const [youtube, setYoutube] = useState<YoutubeState>({ connected: false });
   const [templateMessage, setTemplateMessage] = useState("");
+  const [musicMessage, setMusicMessage] = useState("");
 
   async function refresh() {
     const [newsResponse, youtubeResponse] = await Promise.all([
@@ -77,6 +78,25 @@ export default function Page() {
     }
   }
 
+  async function uploadMusic(file: File) {
+    if (file.type !== "audio/mpeg" && !file.name.toLowerCase().endsWith(".mp3")) {
+      setMusicMessage("Yalnızca MP3 yükleyebilirsin.");
+      return;
+    }
+
+    setMusicMessage("Golden Brown yükleniyor...");
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const response = await fetch("/api/news/music", {method:"POST", body:form});
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Müzik yüklenemedi.");
+      setMusicMessage("Golden Brown hazır. Yeni videolara video süresi kadar eklenecek.");
+    } catch (error) {
+      setMusicMessage(error instanceof Error ? `Müzik yüklenemedi: ${error.message}` : "Müzik yüklenemedi.");
+    }
+  }
+
   function connectYoutube() {
     window.location.assign("/api/youtube/auth");
   }
@@ -96,6 +116,14 @@ export default function Page() {
           <input type="file" accept="video/mp4" onChange={(e) => e.target.files?.[0] && uploadTemplate(e.target.files[0])} />
         </div>
         <small>{templateMessage || "İlk gönderdiğin boş MP4 videoyu burada bir kez yükle."}</small>
+      </div>
+
+      <div style={{ padding: 16, border: "1px solid #ddd", borderRadius: 10, marginBottom: 20 }}>
+        <strong>Golden Brown müziği</strong>
+        <div style={{ marginTop: 10 }}>
+          <input type="file" accept="audio/mpeg,.mp3" onChange={(e) => e.target.files?.[0] && uploadMusic(e.target.files[0])} />
+        </div>
+        <small>{musicMessage || "Golden Brown MP3 dosyasını bir kez yükle. Sistem her Shorts videosuna video süresi kadar ekler."}</small>
       </div>
 
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", margin: "24px 0" }}>
