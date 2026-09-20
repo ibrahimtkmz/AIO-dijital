@@ -21,6 +21,7 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
   const [youtube, setYoutube] = useState<YoutubeState>({ connected: false });
+  const [templateMessage, setTemplateMessage] = useState("");
 
   async function refresh() {
     const [newsResponse, youtubeResponse] = await Promise.all([
@@ -47,6 +48,15 @@ export default function Page() {
   }
 
 
+  async function uploadTemplate(file: File) {
+    setTemplateMessage("Şablon yükleniyor...");
+    const form = new FormData();
+    form.append("file", file);
+    const response = await fetch("/api/news/template", { method: "POST", body: form });
+    const data = await response.json();
+    setTemplateMessage(data.ok ? "Boş video şablonu hazır." : data.error || "Şablon yüklenemedi.");
+  }
+
   function connectYoutube() {
     window.location.assign("/api/youtube/auth");
   }
@@ -58,7 +68,15 @@ export default function Page() {
   return (
     <main style={{ maxWidth: 1100, margin: "40px auto", padding: 20, fontFamily: "Arial, sans-serif" }}>
       <h1>Haber Otomasyonu</h1>
-      <p>RSS → AI → CapCut → YouTube</p>
+      <p>RSS → AI → Video → YouTube</p>
+
+      <div style={{ padding: 16, border: "1px solid #ddd", borderRadius: 10, marginBottom: 20 }}>
+        <strong>Video şablonu</strong>
+        <div style={{ marginTop: 10 }}>
+          <input type="file" accept="video/mp4" onChange={(e) => e.target.files?.[0] && uploadTemplate(e.target.files[0])} />
+        </div>
+        <small>{templateMessage || "İlk gönderdiğin boş MP4 videoyu burada bir kez yükle."}</small>
+      </div>
 
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", margin: "24px 0" }}>
         <button onClick={processNews} disabled={loading}>
