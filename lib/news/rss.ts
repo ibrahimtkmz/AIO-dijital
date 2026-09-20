@@ -151,7 +151,8 @@ export async function fetchRssNews(feedUrl: string, limit = 1): Promise<NewsItem
           item.match(/<link[^>]+href=["']([^"']+)["']/i)?.[1] ||
           "";
         const content = stripHtml(
-          firstTag(item, "description") ||
+          firstTag(item, "content:encoded") ||
+            firstTag(item, "description") ||
             firstTag(item, "summary") ||
             firstTag(item, "content")
         );
@@ -166,7 +167,7 @@ export async function fetchRssNews(feedUrl: string, limit = 1): Promise<NewsItem
         parsed.push({
           sourceUrl: link,
           title,
-          content: article.content,
+          content: article.content || content,
           imageUrl: article.imageUrl || imageFromItem(item),
           source: new URL(feedUrl).hostname.replace(/^www\./, ""),
           publishedAt,
