@@ -34,7 +34,7 @@ function imageFromItem(item: string, base: URL) {
   return normalizeImage(img, base);
 }
 
-async function fetchArticleContent(pageUrl: string) {
+async function fetchArticle(pageUrl: string) {
   const response = await fetch(pageUrl, {
     cache: "no-store",
     headers: {
@@ -42,7 +42,7 @@ async function fetchArticleContent(pageUrl: string) {
       Accept: "text/html,application/xhtml+xml",
     },
   });
-  if (!response.ok) return "";
+  if (!response.ok) return { content: "", imageUrl: "" };
   const html = await response.text();
 
   const blocks = [
@@ -55,7 +55,7 @@ async function fetchArticleContent(pageUrl: string) {
     .filter((x) => x.length >= 200)
     .sort((a, b) => b.length - a.length);
 
-  if (candidates[0]) return candidates[0];
+  const ogImage = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)?.[1] ||\n    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)?.[1] || "";\n\n  if (candidates[0]) return { content: candidates[0], imageUrl: normalizeImage(ogImage, new URL(pageUrl)) };
 
   const paragraphs = [...html.matchAll(/<p\\b[^>]*>([\\s\\S]*?)<\\/p>/gi)]
     .map((m) => stripHtml(m[1] || ""))
@@ -93,7 +93,7 @@ async function fetchHtmlNews(pageUrl: string, limit = 1): Promise<NewsItem[]> {
     if (seen.has(url.href)) continue;
     seen.add(url.href);
 
-    const articleContent = await fetchArticleContent(url.href);
+    const article = await fetchArticle(url.href);
     const offset = match.index ?? 0;
     const parentChunk = html.slice(Math.max(0, offset - 1600), Math.min(html.length, offset + match[0].length + 1600));
     const imageUrl = normalizeImage(
@@ -104,8 +104,8 @@ async function fetchHtmlNews(pageUrl: string, limit = 1): Promise<NewsItem[]> {
     results.push({
       sourceUrl: url.href,
       title,
-      content: articleContent,
-      imageUrl,
+      content: article.content,
+      imageUrl: article.imageUrl || imageUrl,
       source: base.hostname.replace(/^www\\./, ""),
       publishedAt: new Date().toISOString(),
     });
@@ -138,7 +138,7 @@ export async function fetchRssNews(feedUrl: string, limit = 1): Promise<NewsItem
       if (!title || !link) continue;
 
       const publishedAt = firstTag(item, "pubDate") || firstTag(item, "published") || firstTag(item, "updated") || new Date().toISOString();
-      const content = await fetchArticleContent(link);
+      const article = await fetchArticle(link);
       parsed.push({
         sourceUrl: link,
         title,
