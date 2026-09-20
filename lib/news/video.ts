@@ -2,7 +2,6 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
-import ffmpegPath from "ffmpeg-static";
 import sharp from "sharp";
 import { ProcessedNews } from "./types";
 import { get, list } from "@vercel/blob";
@@ -168,8 +167,7 @@ async function downloadTemplate(target: string) {
 }
 
 function runFfmpeg(args: string[]) {
-  const ffmpegBinary = ffmpegPath;
-  if (!ffmpegBinary) throw new Error("FFmpeg binary bulunamadı.");
+  const ffmpegBinary = path.join(process.cwd(), "node_modules", "ffmpeg-static", process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg");
   return new Promise<void>((resolve, reject) => {
     const child = spawn(ffmpegBinary, args, { stdio: ["ignore", "ignore", "pipe"] });
     let stderr = "";
