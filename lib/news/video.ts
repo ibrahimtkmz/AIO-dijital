@@ -5,7 +5,7 @@ import { spawn } from "node:child_process";
 import ffmpegPath from "ffmpeg-static";
 import sharp from "sharp";
 import { ProcessedNews } from "./types";
-import { list } from "@vercel/blob";
+import { get, list } from "@vercel/blob";
 
 const WIDTH = 1080;
 const HEIGHT = 1920;
@@ -100,6 +100,34 @@ async function download(url: string, target: string) {
   console.log("[video] downloaded", { url, bytes: buffer.length });
 }
 
+async function downloadPrivateTemplate(pathname: string, target: string) {
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+  if (!token) throw new Error("Vercel Blob tokenı tanımlı değil.");
+
+  const result = await get(pathname, {
+    access: "private",
+    token,
+  });
+
+  if (!result || result.statusCode !== 200 || !result.stream) {
+    throw new Error(`Haber video şablonu Blob'dan indirilemedi: ${pathname}`);
+  }
+
+  const chunks: Buffer[] = [];
+  for await (const chunk of result.stream) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+
+  const buffer = Buffer.concat(chunks);
+  if (!buffer.length) throw new Error("Haber video şablonu Blob'dan boş döndü.");
+
+  await fs.writeFile(target, buffer);
+  console.log("[video] private template downloaded", {
+    pathname,
+    bytes: buffer.length,
+  });
+}
+
 async function downloadTemplate(target: string) {
   const templateUrl = process.env.NEWS_TEMPLATE_VIDEO_URL?.trim();
   if (templateUrl) {
@@ -107,15 +135,28 @@ async function downloadTemplate(target: string) {
     return;
   }
 
-  const { blobs } = await list({ prefix: "news/template", limit: 100, token: process.env.BLOB_READ_WRITE_TOKEN });
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+  if (!token) throw new Error("Vercel Blob tokenı tanımlı değil.");
+
+  const { blobs } = await list({
+    prefix: "news/template",
+    limit: 100,
+    token,
+  });
+
   const template = blobs
     .filter((blob) => blob.pathname.startsWith("news/template-") || blob.pathname === "news/template.mp4")
     .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())[0];
-  if (!template?.url) {
-    console.error("[video] no template blob found", { count: blobs.length, pathnames: blobs.map((blob) => blob.pathname) });
-    throw new Error("Haber video şablonu Blob içinde bulunamadı. Lütfen yüklemenin tamamlandığını gördükten sonra tekrar deneyin.");
+
+  if (!template?.pathname) {
+    console.error("[video] no template blob found", {
+      count: blobs.length,
+      pathnames: blobs.map((blob) => blob.pathname),
+    });
+    throw new Error("Haber video şablonu Blob içinde bulunamadı. Lütfen önce MP4 şablonunu yükleyin.");
   }
-  await download(template.url, target);
+
+  await downloadPrivateTemplate(template.pathname, target);
 }
 
 function runFfmpeg(args: string[]) {
