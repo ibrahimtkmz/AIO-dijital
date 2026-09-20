@@ -13,7 +13,7 @@ export async function POST() {
   if (!feed) return NextResponse.json({ error: "NEWS_RSS_URL tanımlı değil." }, { status: 400 });
 
   try {
-    const news = await fetchRssNews(feed, 10);
+    const news = await fetchRssNews(feed, 1);
     console.log("[news] fetched", { count: news.length });
 
     const results = [];
