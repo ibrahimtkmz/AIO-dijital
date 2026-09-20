@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     });
 
     const blob = await put(pathname, file, {
-      access: "public",
+      access: "private",
       addRandomSuffix: false,
       token,
     });
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       url: blob.url,
     });
 
-    return NextResponse.json({ ok: true, url: blob.url, pathname: blob.pathname });
+    return NextResponse.json({ ok: true, pathname: blob.pathname });
   } catch (error) {
     console.error("[template] upload failed", error);
     return NextResponse.json(
