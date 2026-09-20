@@ -8,15 +8,12 @@ import { uploadYoutubeVideo } from "@/lib/youtube";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-export async function POST(request: Request) {
-  const {searchParams} = new URL(request.url);
-  const dryRun = searchParams.get("dryRun") === "1";
-  const limit = Math.max(1, Math.min(10, Number(searchParams.get("limit") || "10")));
+export async function POST() {
   const feed = process.env.NEWS_RSS_URL;
   if (!feed) return NextResponse.json({ error: "NEWS_RSS_URL tanımlı değil." }, { status: 400 });
 
   try {
-    const news = await fetchRssNews(feed, limit);
+    const news = await fetchRssNews(feed, 10);
     console.log("[news] fetched", { count: news.length });
 
     const results = [];
@@ -42,7 +39,7 @@ export async function POST(request: Request) {
         console.log("[news] video complete", { url: item.sourceUrl, duration: video.duration });
 
         let youtube: { videoId: string; url?: string } | undefined;
-        if (!dryRun && process.env.AUTO_PUBLISH !== "false") {
+        if (process.env.AUTO_PUBLISH !== "false") {
           youtube = await uploadYoutubeVideo({
             videoPath: video.videoPath,
             title: social.socialTitle,
