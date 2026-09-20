@@ -1,5 +1,6 @@
 "use client";
 
+import { upload } from "@vercel/blob/client";
 import { useEffect, useState } from "react";
 
 type Item = {
@@ -47,14 +48,31 @@ export default function Page() {
     }
   }
 
-
   async function uploadTemplate(file: File) {
-    setTemplateMessage("Şablon yükleniyor...");
-    const form = new FormData();
-    form.append("file", file);
-    const response = await fetch("/api/news/template", { method: "POST", body: form });
-    const data = await response.json();
-    setTemplateMessage(data.ok ? "Boş video şablonu hazır." : data.error || "Şablon yüklenemedi.");
+    if (file.type !== "video/mp4" && !file.name.toLowerCase().endsWith(".mp4")) {
+      setTemplateMessage("Yalnızca MP4 şablon yükleyebilirsin.");
+      return;
+    }
+
+    setTemplateMessage("Şablon doğrudan Vercel Blob'a yükleniyor...");
+
+    try {
+      const blob = await upload("news/template.mp4", file, {
+        access: "public",
+        handleUploadUrl: "/api/news/template/upload",
+        allowOverwrite: true,
+        multipart: true,
+        onUploadProgress: (event) => {
+          setTemplateMessage(`Şablon yükleniyor... %${Math.round(event.percentage)}`);
+        },
+      });
+
+      setTemplateMessage(`Boş video şablonu hazır. ${blob.url ? "Yükleme tamamlandı." : ""}`);
+    } catch (error) {
+      setTemplateMessage(
+        error instanceof Error ? `Şablon yüklenemedi: ${error.message}` : "Şablon yüklenemedi.",
+      );
+    }
   }
 
   function connectYoutube() {
