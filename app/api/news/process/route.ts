@@ -32,7 +32,7 @@ export async function POST() {
         const video = await createNewsVideo(social);
         let youtube: { videoId: string; url?: string } | undefined;
 
-        if (process.env.AUTO_PUBLISH === "true") {
+        if (process.env.AUTO_PUBLISH !== "false") {
           youtube = await uploadYoutubeVideo({
             videoPath: video.videoPath,
             title: social.socialTitle,
