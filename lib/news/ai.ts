@@ -7,13 +7,13 @@ function getWords(text: string) {
 export async function rewriteForSocial(item: NewsItem): Promise<ProcessedNews> {
   const sourceWords = getWords(item.content);
 
-  if (sourceWords.length < 50) {
-    throw new Error("Haber metni 50 kelimeden kısa; haber atlandı.");
-  }
+  const fallbackText = sourceWords.length
+    ? sourceWords.join(" ")
+    : item.title.trim();
 
   return {
     ...item,
     socialTitle: item.title.trim(),
-    socialText: sourceWords.slice(0, 50).join(" "),
+    socialText: fallbackText.slice(0, 620),
   };
 }
