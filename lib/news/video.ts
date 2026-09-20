@@ -109,13 +109,21 @@ async function downloadPrivateTemplate(pathname: string, target: string) {
     token,
   });
 
-  if (!result || !result.stream) {
+  if (!result || result.statusCode !== 200 || !result.stream) {
     throw new Error(`Haber video şablonu Blob'dan indirilemedi: ${pathname}`);
   }
 
+  const reader = result.stream.getReader();
   const chunks: Buffer[] = [];
-  for await (const chunk of result.stream) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) chunks.push(Buffer.from(value));
+    }
+  } finally {
+    reader.releaseLock();
   }
 
   const buffer = Buffer.concat(chunks);
