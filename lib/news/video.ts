@@ -5,7 +5,6 @@ import sharp from "sharp";
 import { ProcessedNews } from "./types";
 import { get, list } from "@vercel/blob";
 import { Sandbox } from "@vercel/sandbox";
-import ffmpegPath from "ffmpeg-static";
 
 const WIDTH = 1080;
 const HEIGHT = 1920;
@@ -183,8 +182,8 @@ async function runFfmpeg(args: string[], inputFiles: Array<{ path: string; conte
       })),
     );
 
-    if (!ffmpegPath) throw new Error("FFmpeg binary bulunamadı.");
-    const ffmpegBytes = await fs.readFile(ffmpegPath);
+    const ffmpegBinaryPath = path.join(process.cwd(), "public", "ffmpeg");
+    const ffmpegBytes = await fs.readFile(ffmpegBinaryPath);
     await sandbox.writeFiles([{ path: "/vercel/sandbox/ffmpeg", content: ffmpegBytes }]);
     await sandbox.runCommand({ cmd: "chmod", args: ["+x", "/vercel/sandbox/ffmpeg"] });
 
