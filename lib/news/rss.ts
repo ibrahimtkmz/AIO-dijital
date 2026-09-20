@@ -157,7 +157,12 @@ async function fetchHtmlNews(pageUrl: string, limit = 1): Promise<NewsItem[]> {
 }
 
 export async function fetchRssNews(feedUrl: string, limit = 1): Promise<NewsItem[]> {
-  const response = await fetch(feedUrl, {
+  const normalizedFeedUrl =
+    feedUrl === "https://rss.sondakika.com/" || feedUrl === "https://rss.sondakika.com"
+      ? "https://rss.sondakika.com/rssnew.aspx"
+      : feedUrl;
+
+  const response = await fetch(normalizedFeedUrl, {
     cache: "no-store",
     headers: {
       "User-Agent": "Mozilla/5.0 (compatible; AIO-Dijital/1.0; +https://aio-dijital.vercel.app)",
@@ -197,7 +202,7 @@ export async function fetchRssNews(feedUrl: string, limit = 1): Promise<NewsItem
           title,
           content: article.content || content,
           imageUrl: article.imageUrl || imageFromItem(item),
-          source: new URL(feedUrl).hostname.replace(/^www\./, ""),
+          source: new URL(normalizedFeedUrl).hostname.replace(/^www\./, ""),
           publishedAt,
         });
       }
