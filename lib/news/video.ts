@@ -109,7 +109,7 @@ async function downloadPrivateTemplate(pathname: string, target: string) {
     token,
   });
 
-  if (!result || result.statusCode !== 200 || !result.stream) {
+  if (!result || !result.stream) {
     throw new Error(`Haber video şablonu Blob'dan indirilemedi: ${pathname}`);
   }
 
