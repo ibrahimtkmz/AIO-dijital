@@ -51,12 +51,40 @@ async function fetchArticleDetails(pageUrl: string) {
   const articleMatch = html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i);
   const articleText = articleMatch?.[1] || "";
 
+  let jsonLdBody = "";
+  for (const match of html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
+    try {
+      const parsed = JSON.parse(match[1].trim());
+      const nodes = Array.isArray(parsed) ? parsed : [parsed];
+      for (const node of nodes) {
+        if (typeof node?.articleBody === "string" && node.articleBody.length > jsonLdBody.length) {
+          jsonLdBody = node.articleBody;
+        }
+        if (Array.isArray(node?.["@graph"])) {
+          for (const graphNode of node["@graph"]) {
+            if (typeof graphNode?.articleBody === "string" && graphNode.articleBody.length > jsonLdBody.length) {
+              jsonLdBody = graphNode.articleBody;
+            }
+          }
+        }
+      }
+    } catch {}
+  }
+
+  const metaDescription =
+    html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i)?.[1] ||
+    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i)?.[1] ||
+    "";
+
   const contentBlocks = articleText
     ? [articleText]
     : [...html.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)].map((m) => m[1]);
 
-  const content = contentBlocks
-    .map((x) => stripHtml(x))
+  const content = [
+    jsonLdBody,
+    ...contentBlocks.map((x) => stripHtml(x)),
+    stripHtml(metaDescription),
+  ]
     .filter((x) => x.length >= 20)
     .join(" ")
     .replace(/\s+/g, " ")
