@@ -2,21 +2,21 @@ import { NewsItem } from "./types";
 
 function stripHtml(value: string) {
   return value
-    .replace(/<script[\\s\\S]*?<\\/script>/gi, " ")
-    .replace(/<style[\\s\\S]*?<\\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<[^>]*>/g, " ")
     .replace(/&nbsp;/gi, " ")
     .replace(/&amp;/gi, "&")
     .replace(/&quot;/gi, '"')
     .replace(/&#39;/gi, "'")
     .replace(/&#x27;/gi, "'")
-    .replace(/\\s+/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
 function firstTag(xml: string, tag: string) {
   const m = xml.match(new RegExp("<" + tag + "[^>]*>([\\s\\S]*?)</" + tag + ">", "i"));
-  return m?.[1]?.replace(/<!\\[CDATA\\[|\\]\\]>/g, "").trim() || "";
+  return m?.[1]?.replace(/<!\[CDATA\[|\]\]>/g, "").trim() || "";
 }
 
 function normalizeImage(url: string, base: URL) {
@@ -42,12 +42,20 @@ async function fetchArticle(pageUrl: string) {
       Accept: "text/html,application/xhtml+xml",
     },
   });
-  if (!response.ok) return { content: "", imageUrl: "" };
+
+  if (!response.ok) return {content: "", imageUrl: ""};
+
   const html = await response.text();
+  const base = new URL(pageUrl);
+
+  const ogImage =
+    html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)?.[1] ||
+    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)?.[1] ||
+    "";
 
   const blocks = [
-    ...html.matchAll(/<article\\b[^>]*>([\\s\\S]*?)<\\/article>/gi),
-    ...html.matchAll(/<div[^>]+(?:class|id)=["'][^"']*(?:article|news-content|news-detail|haber-icerik|haber-metin|content-body|detail-content)[^"']*["'][^>]*>([\\s\\S]*?)<\\/div>/gi),
+    ...html.matchAll(/<article\b[^>]*>([\s\S]*?)<\/article>/gi),
+    ...html.matchAll(/<div[^>]+(?:class|id)=["'][^"']*(?:article|news-content|news-detail|haber-icerik|haber-metin|content-body|detail-content)[^"']*["'][^>]*>([\s\S]*?)<\/div>/gi),
   ];
 
   const candidates = blocks
@@ -55,13 +63,21 @@ async function fetchArticle(pageUrl: string) {
     .filter((x) => x.length >= 200)
     .sort((a, b) => b.length - a.length);
 
-  const ogImage = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)?.[1] ||\n    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)?.[1] || "";\n\n  if (candidates[0]) return { content: candidates[0], imageUrl: normalizeImage(ogImage, new URL(pageUrl)) };
+  if (candidates[0]) {
+    return {
+      content: candidates[0],
+      imageUrl: normalizeImage(ogImage, base),
+    };
+  }
 
-  const paragraphs = [...html.matchAll(/<p\\b[^>]*>([\\s\\S]*?)<\\/p>/gi)]
+  const paragraphs = [...html.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)]
     .map((m) => stripHtml(m[1] || ""))
     .filter((x) => x.length >= 35);
 
-  return paragraphs.join(" ").replace(/\\s+/g, " ").trim();
+  return {
+    content: paragraphs.join(" ").replace(/\s+/g, " ").trim(),
+    imageUrl: normalizeImage(ogImage, base),
+  };
 }
 
 async function fetchHtmlNews(pageUrl: string, limit = 1): Promise<NewsItem[]> {
@@ -79,34 +95,41 @@ async function fetchHtmlNews(pageUrl: string, limit = 1): Promise<NewsItem[]> {
   const base = new URL(pageUrl);
   const seen = new Set<string>();
   const results: NewsItem[] = [];
-  const linkRegex = /<a\\b[^>]*href=["']([^"']+)["'][^>]*>([\\s\\S]*?)<\\/a>/gi;
+  const linkRegex = /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
 
   for (const match of html.matchAll(linkRegex)) {
     const href = match[1];
     const title = stripHtml(match[2]);
+
     if (!title || title.length < 20 || title.length > 220) continue;
     if (!href || href.startsWith("#") || href.startsWith("javascript:")) continue;
 
     let url: URL;
     try { url = new URL(href, base); } catch { continue; }
-    if (url.hostname !== base.hostname || !/\\/(haber|son-dakika-haberleri)\\//i.test(url.pathname)) continue;
+
+    if (url.hostname !== base.hostname || !/\/(haber|son-dakika-haberleri)\//i.test(url.pathname)) continue;
     if (seen.has(url.href)) continue;
+
     seen.add(url.href);
 
     const article = await fetchArticle(url.href);
     const offset = match.index ?? 0;
-    const parentChunk = html.slice(Math.max(0, offset - 1600), Math.min(html.length, offset + match[0].length + 1600));
-    const imageUrl = normalizeImage(
+    const parentChunk = html.slice(
+      Math.max(0, offset - 1600),
+      Math.min(html.length, offset + match[0].length + 1600),
+    );
+
+    const nearbyImage = normalizeImage(
       parentChunk.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i)?.[1] || "",
-      base
+      base,
     );
 
     results.push({
       sourceUrl: url.href,
       title,
       content: article.content,
-      imageUrl: article.imageUrl || imageUrl,
-      source: base.hostname.replace(/^www\\./, ""),
+      imageUrl: article.imageUrl || nearbyImage,
+      source: base.hostname.replace(/^www\./, ""),
       publishedAt: new Date().toISOString(),
     });
 
@@ -127,24 +150,35 @@ export async function fetchRssNews(feedUrl: string, limit = 1): Promise<NewsItem
 
   if (response.ok) {
     const xml = await response.text();
-    const items = [...xml.matchAll(/<(item|entry)[^>]*>[\\s\\S]*?<\\/(?:item|entry)>/gi)]
+    const items = [...xml.matchAll(/<(item|entry)[^>]*>[\s\S]*?<\/(?:item|entry)>/gi)]
       .map((m) => m[0])
       .slice(0, Math.max(1, limit));
 
     const parsed: NewsItem[] = [];
+
     for (const item of items) {
       const title = stripHtml(firstTag(item, "title"));
-      const link = firstTag(item, "link") || item.match(/<link[^>]+href=["']([^"']+)["']/i)?.[1] || "";
+      const link =
+        firstTag(item, "link") ||
+        item.match(/<link[^>]+href=["']([^"']+)["']/i)?.[1] ||
+        "";
+
       if (!title || !link) continue;
 
-      const publishedAt = firstTag(item, "pubDate") || firstTag(item, "published") || firstTag(item, "updated") || new Date().toISOString();
+      const publishedAt =
+        firstTag(item, "pubDate") ||
+        firstTag(item, "published") ||
+        firstTag(item, "updated") ||
+        new Date().toISOString();
+
       const article = await fetchArticle(link);
+
       parsed.push({
         sourceUrl: link,
         title,
-        content,
-        imageUrl: imageFromItem(item, new URL(feedUrl)),
-        source: new URL(feedUrl).hostname.replace(/^www\\./, ""),
+        content: article.content,
+        imageUrl: article.imageUrl || imageFromItem(item, new URL(feedUrl)),
+        source: new URL(feedUrl).hostname.replace(/^www\./, ""),
         publishedAt,
       });
     }
