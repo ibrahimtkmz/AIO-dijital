@@ -5,6 +5,7 @@ import sharp from "sharp";
 import { ProcessedNews } from "./types";
 import { get, list } from "@vercel/blob";
 import { Sandbox } from "@vercel/sandbox";
+import ffmpegPath from "ffmpeg-static";
 
 const WIDTH = 1080;
 const HEIGHT = 1920;
@@ -182,15 +183,10 @@ async function runFfmpeg(args: string[], inputFiles: Array<{ path: string; conte
       })),
     );
 
-    const ffmpegCheck = await sandbox.runCommand({
-      cmd: "bash",
-      args: ["-lc", "command -v ffmpeg || true"],
-    });
-    const ffmpegBinary = (await ffmpegCheck.stdout()).trim();
-
-    if (!ffmpegBinary) {
-      throw new Error("Vercel Sandbox içinde FFmpeg bulunamadı.");
-    }
+    if (!ffmpegPath) throw new Error("FFmpeg binary bulunamadı.");
+    const ffmpegBytes = await fs.readFile(ffmpegPath);
+    await sandbox.writeFiles([{ path: "/vercel/sandbox/ffmpeg", content: ffmpegBytes }]);
+    await sandbox.runCommand({ cmd: "chmod", args: ["+x", "/vercel/sandbox/ffmpeg"] });
 
     const sandboxArgs = args.map((arg) =>
       inputFiles.concat([{ path: outputPath, content: Buffer.alloc(0) }]).reduce(
@@ -200,7 +196,7 @@ async function runFfmpeg(args: string[], inputFiles: Array<{ path: string; conte
     );
 
     const result = await sandbox.runCommand({
-      cmd: ffmpegBinary,
+      cmd: "/vercel/sandbox/ffmpeg",
       args: sandboxArgs,
       cwd: "/vercel/sandbox",
     });
