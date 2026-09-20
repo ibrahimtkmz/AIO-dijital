@@ -11,14 +11,13 @@ export async function POST(request: Request) {
       body,
       request,
       onBeforeGenerateToken: async (pathname) => {
-        if (pathname !== "news/template.mp4") {
+        if (!/^news\/template-\\d+\\.mp4$/.test(pathname)) {
           throw new Error("Geçersiz şablon yolu.");
         }
 
         return {
           allowedContentTypes: ["video/mp4"],
           addRandomSuffix: false,
-          allowOverwrite: true,
           maximumSizeInBytes: 25 * 1024 * 1024,
         };
       },
