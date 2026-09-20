@@ -17,9 +17,15 @@ export async function POST() {
     console.log("[news] fetched", { count: news.length });
 
     const results = [];
+    const item = news[0];
+    if (!item) {
+      return NextResponse.json({ ok: true, count: 0, results: [], message: "Yeni haber bulunamadı." });
+    }
 
-    for (const item of news) {
-      if (hasNews(item.sourceUrl)) continue;
+    {
+      if (hasNews(item.sourceUrl)) {
+        return NextResponse.json({ ok: true, count: 0, results: [], message: "İlk haber daha önce işlendi." });
+      }
 
       saveNews({
         sourceUrl: item.sourceUrl,
