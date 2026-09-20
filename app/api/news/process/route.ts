@@ -13,6 +13,8 @@ export async function POST() {
 
   try {
     const news = await fetchRssNews(feed, 10);
+    console.log("[news] fetched", { count: news.length });
+
     const results = [];
 
     for (const item of news) {
@@ -28,10 +30,14 @@ export async function POST() {
       });
 
       try {
+        console.log("[news] processing", { url: item.sourceUrl, imageUrl: item.imageUrl });
         const social = await rewriteForSocial(item);
-        const video = await createNewsVideo(social);
-        let youtube: { videoId: string; url?: string } | undefined;
+        console.log("[news] ai complete", { url: item.sourceUrl });
 
+        const video = await createNewsVideo(social);
+        console.log("[news] video complete", { url: item.sourceUrl, duration: video.duration });
+
+        let youtube: { videoId: string; url?: string } | undefined;
         if (process.env.AUTO_PUBLISH !== "false") {
           youtube = await uploadYoutubeVideo({
             videoPath: video.videoPath,
@@ -41,6 +47,7 @@ export async function POST() {
             categoryId: "25",
             privacyStatus: "public",
           });
+          console.log("[news] youtube complete", { url: item.sourceUrl, videoId: youtube.videoId });
         }
 
         results.push({ item, social, video: { ...video, videoPath: undefined }, youtube });
@@ -54,6 +61,13 @@ export async function POST() {
           youtubeVideoId: youtube?.videoId,
         });
       } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        console.error("[news] item failed", {
+          url: item.sourceUrl,
+          imageUrl: item.imageUrl,
+          error: errorMessage,
+          stack: e instanceof Error ? e.stack : undefined,
+        });
         saveNews({
           sourceUrl: item.sourceUrl,
           title: item.title,
@@ -62,16 +76,15 @@ export async function POST() {
           status: "failed",
           updatedAt: new Date().toISOString(),
         });
-        results.push({ item, error: e instanceof Error ? e.message : "Bilinmeyen hata" });
+        results.push({ item, error: errorMessage });
       }
     }
 
     return NextResponse.json({ ok: true, count: results.length, results });
   } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "İşlem başarısız." },
-      { status: 500 },
-    );
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    console.error("[news] process failed", { error: errorMessage, stack: e instanceof Error ? e.stack : undefined });
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
