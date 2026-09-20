@@ -1,11 +1,10 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { spawn } from "node:child_process";
 import sharp from "sharp";
-import ffmpegPath from "ffmpeg-static";
 import { ProcessedNews } from "./types";
 import { get, list } from "@vercel/blob";
+import { Sandbox } from "@vercel/sandbox";
 
 const WIDTH = 1080;
 const HEIGHT = 1920;
@@ -167,18 +166,61 @@ async function downloadTemplate(target: string) {
   await downloadPrivateTemplate(template.pathname, target);
 }
 
-function runFfmpeg(args: string[]) {
-  if (!ffmpegPath) throw new Error("FFmpeg binary bulunamadı.");
-  return new Promise<void>((resolve, reject) => {
-    const child = spawn(ffmpegPath, args, { stdio: ["ignore", "ignore", "pipe"] });
-    let stderr = "";
-    child.stderr.on("data", (chunk) => {
-      stderr += chunk.toString();
-      if (stderr.length > 12000) stderr = stderr.slice(-12000);
-    });
-    child.on("error", reject);
-    child.on("close", (code) => code === 0 ? resolve() : reject(new Error(`FFmpeg başarısız: ${stderr}`)));
+async function runFfmpeg(args: string[], inputFiles: Array<{ path: string; content: Buffer }>, outputPath: string) {
+  const sandbox = await Sandbox.create({
+    runtime: "node24",
+    persistent: false,
+    timeout: 10 * 60 * 1000,
+    resources: { vcpus: 2 },
   });
+
+  try {
+    await sandbox.writeFiles(
+      inputFiles.map((file) => ({
+        path: `/vercel/sandbox/${path.basename(file.path)}`,
+        content: file.content,
+      })),
+    );
+
+    const ffmpegCheck = await sandbox.runCommand({
+      cmd: "bash",
+      args: ["-lc", "command -v ffmpeg || true"],
+    });
+    const ffmpegBinary = (await ffmpegCheck.stdout()).trim();
+
+    if (!ffmpegBinary) {
+      throw new Error("Vercel Sandbox içinde FFmpeg bulunamadı.");
+    }
+
+    const sandboxArgs = args.map((arg) =>
+      inputFiles.concat([{ path: outputPath, content: Buffer.alloc(0) }]).reduce(
+        (value, file) => value.split(file.path).join(`/vercel/sandbox/${path.basename(file.path)}`),
+        arg,
+      ),
+    );
+
+    const result = await sandbox.runCommand({
+      cmd: ffmpegBinary,
+      args: sandboxArgs,
+      cwd: "/vercel/sandbox",
+    });
+
+    if (result.exitCode !== 0) {
+      throw new Error(`FFmpeg başarısız: ${(await result.stderr()).slice(-12000)}`);
+    }
+
+    const rendered = await sandbox.readFileToBuffer({
+      path: `/vercel/sandbox/${path.basename(outputPath)}`,
+    });
+
+    if (!rendered?.length) {
+      throw new Error("FFmpeg çıktı videosu boş.");
+    }
+
+    await fs.writeFile(outputPath, rendered);
+  } finally {
+    await sandbox.stop().catch(() => undefined);
+  }
 }
 
 export async function createNewsVideo(item: ProcessedNews) {
@@ -203,24 +245,35 @@ export async function createNewsVideo(item: ProcessedNews) {
     const overlay = await sharp(overlaySvg(item)).png().toBuffer();
     await fs.writeFile(overlayPath, overlay);
 
-    await runFfmpeg([
-      "-y",
-      "-stream_loop", "-1",
-      "-i", templatePath,
-      "-loop", "1",
-      "-i", imagePath,
-      "-i", overlayPath,
-      "-filter_complex",
-      `[0:v]trim=duration=${TEMPLATE_DURATION},setpts=PTS-STARTPTS[bg];[1:v]format=rgba[news];[2:v]format=rgba[ov];[bg][news]overlay=${TEMPLATE.imageLeft}:${TEMPLATE.imageTop}:eof_action=repeat[a];[a][ov]overlay=0:0:eof_action=repeat[v]`,
-      "-map", "[v]",
-      "-t", String(TEMPLATE_DURATION),
-      "-r", String(FPS),
-      "-c:v", "libx264",
-      "-preset", "veryfast",
-      "-pix_fmt", "yuv420p",
-      "-movflags", "+faststart",
+    await runFfmpeg(
+      [
+        "-y",
+        "-stream_loop", "-1",
+        "-i", templatePath,
+        "-loop", "1",
+        "-i", imagePath,
+        "-i", overlayPath,
+        "-filter_complex",
+        `[0:v]trim=duration=${TEMPLATE_DURATION},setpts=PTS-STARTPTS[bg];[1:v]format=rgba[news];[2:v]format=rgba[ov];[bg][news]overlay=${TEMPLATE.imageLeft}:${TEMPLATE.imageTop}:eof_action=repeat[a];[a][ov]overlay=0:0:eof_action=repeat[v]`,
+        "-map", "[v]",
+        "-t", String(TEMPLATE_DURATION),
+        "-r", String(FPS),
+        "-c:v", "libx264",
+        "-preset", "veryfast",
+        "-pix_fmt", "yuv420p",
+        "-movflags", "+faststart",
+        templatePath,
+        imagePath,
+        overlayPath,
+        videoPath,
+      ],
+      [
+        { path: templatePath, content: await fs.readFile(templatePath) },
+        { path: imagePath, content: await fs.readFile(imagePath) },
+        { path: overlayPath, content: overlay },
+      ],
       videoPath,
-    ]);
+    );
 
     return { mode: "ffmpeg" as const, videoPath, width: WIDTH, height: HEIGHT, duration: TEMPLATE_DURATION };
   } catch (error) {
