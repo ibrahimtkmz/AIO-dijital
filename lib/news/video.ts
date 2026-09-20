@@ -97,8 +97,10 @@ async function downloadTemplate(target: string) {
     return;
   }
 
-  const { blobs } = await list({ prefix: "news/template.mp4", limit: 1 });
-  const template = blobs[0];
+  const { blobs } = await list({ prefix: "news/template", limit: 100 });
+  const template = blobs
+    .filter((blob) => blob.pathname.startsWith("news/template-") || blob.pathname === "news/template.mp4")
+    .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())[0];
   if (!template?.url) throw new Error("Haber video şablonu yüklenmemiş.");
   await download(template.url, target);
 }
