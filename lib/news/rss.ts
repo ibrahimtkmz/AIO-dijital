@@ -20,8 +20,8 @@ function firstTag(xml: string, tag: string) {
 }
 
 function meta(html: string, key: string) {
-  const a = html.match(new RegExp("<meta[^>]+(?:property|name)=[\\\"']" + key + "[\\\"'][^>]+content=[\\\"']([^\\\"']+)[\\\"'][^>]*>", "i"));
-  const b = html.match(new RegExp("<meta[^>]+content=[\\\"']([^\\\"']+)[\\\"'][^>]+(?:property|name)=[\\\"']" + key + "[\\\"'][^>]*>", "i"));
+  const a = html.match(new RegExp("<meta[^>]+(?:property|name)=[\"']" + key + "[\"'][^>]+content=[\"']([^\"']+)[\"'][^>]*>", "i"));
+  const b = html.match(new RegExp("<meta[^>]+content=[\"']([^\"']+)[\"'][^>]+(?:property|name)=[\"']" + key + "[\"'][^>]*>", "i"));
   return a?.[1] || b?.[1] || "";
 }
 
@@ -40,8 +40,8 @@ function normalizeImage(value: string, base: URL) {
 function usefulSummary(value: string, title: string) {
   const text = stripHtml(value);
   if (text.length < 60) return false;
-  const t = title.toLocaleLowerCase("tr-TR").replace(/[^\\p{L}\\p{N}]+/gu, " ").trim();
-  const s = text.toLocaleLowerCase("tr-TR").replace(/[^\\p{L}\\p{N}]+/gu, " ").trim();
+  const t = title.toLocaleLowerCase("tr-TR").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  const s = text.toLocaleLowerCase("tr-TR").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
   return s.length >= 60 && s !== t;
 }
 
