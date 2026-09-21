@@ -1,4 +1,4 @@
-import { NewsItem } from "./types";
+import {NewsItem} from "./types";
 
 function stripHtml(value: string) {
   return value
@@ -9,27 +9,43 @@ function stripHtml(value: string) {
     .replace(/&amp;/gi, "&")
     .replace(/&quot;/gi, '"')
     .replace(/&#39;/gi, "'")
+    .replace(/&#x27;/gi, "'")
     .replace(/\s+/g, " ")
     .trim();
 }
 
 function firstTag(xml: string, tag: string) {
-  const m = xml.match(new RegExp("<" + tag + "[^>]*>([\s\S]*?)</" + tag + ">", "i"));
-  return m?.[1]?.replace(/<!\[CDATA\[|\]\]>/g, "").trim() || "";
+  const m = xml.match(new RegExp("<" + tag + "[^>]*>([\\s\\S]*?)</" + tag + ">", "i"));
+  return m?.[1] ? stripHtml(m[1].replace(/<!\[CDATA\[|\]\]>/g, "")) : "";
 }
 
-function imageFromItem(item: string) {
-  const m = item.match(/<media:content[^>]+url=["']([^"']+)["']/i);
-  if (m?.[1]) return m[1];
-  const e = item.match(/<enclosure[^>]+url=["']([^"']+)["']/i);
-  if (e?.[1]) return e[1];
-  const h = firstTag(item, "description");
-  return h.match(/<img[^>]+src=["']([^"']+)["']/i)?.[1] || "";
+function meta(html: string, key: string) {
+  const a = html.match(new RegExp("<meta[^>]+(?:property|name)=[\\\"']" + key + "[\\\"'][^>]+content=[\\\"']([^\\\"']+)[\\\"'][^>]*>", "i"));
+  const b = html.match(new RegExp("<meta[^>]+content=[\\\"']([^\\\"']+)[\\\"'][^>]+(?:property|name)=[\\\"']" + key + "[\\\"'][^>]*>", "i"));
+  return a?.[1] || b?.[1] || "";
 }
 
+function normalizeImage(value: string, base: URL) {
+  if (!value) return "";
+  try {
+    const url = new URL(value.replace(/&amp;/g, "&"), base);
+    if (!/^https?:$/i.test(url.protocol)) return "";
+    if (/slider_saat|logo|favicon|placeholder|no[-_ ]?image/i.test(url.pathname)) return "";
+    return url.href;
+  } catch {
+    return "";
+  }
+}
 
+function usefulSummary(value: string, title: string) {
+  const text = stripHtml(value);
+  if (text.length < 60) return false;
+  const t = title.toLocaleLowerCase("tr-TR").replace(/[^\\p{L}\\p{N}]+/gu, " ").trim();
+  const s = text.toLocaleLowerCase("tr-TR").replace(/[^\\p{L}\\p{N}]+/gu, " ").trim();
+  return s.length >= 60 && s !== t;
+}
 
-async function fetchArticleDetails(pageUrl: string) {
+async function fetchArticleDetails(pageUrl: string, title: string) {
   const response = await fetch(pageUrl, {
     cache: "no-store",
     headers: {
@@ -37,115 +53,49 @@ async function fetchArticleDetails(pageUrl: string) {
       Accept: "text/html,application/xhtml+xml",
     },
   });
-
-  if (!response.ok) return {content: "", imageUrl: ""};
+  if (!response.ok) return {summary: "", imageUrl: ""};
 
   const html = await response.text();
   const base = new URL(pageUrl);
 
-  // SonDakika'nın haber sayfasındaki asıl öne çıkan görsel:
-  // <img ... id="haberResim" src="...">
-  const haberImage =
-    html.match(/<img[^>]+id=["']haberResim["'][^>]+src=["']([^"']+)["']/i)?.[1] ||
-    html.match(/<img[^>]+src=["']([^"']+)["'][^>]+id=["']haberResim["']/i)?.[1] ||
-    "";
+  const imageUrl =
+    normalizeImage(html.match(/<img[^>]+id=[\"']haberResim[\"'][^>]+src=[\"']([^\"']+)/i)?.[1] || "", base) ||
+    normalizeImage(html.match(/<img[^>]+src=[\"']([^\"']+)[\"'][^>]+id=[\"']haberResim[\"']/i)?.[1] || "", base) ||
+    normalizeImage(meta(html, "og:image"), base) ||
+    normalizeImage(meta(html, "twitter:image"), base);
 
-  // SonDakika'nın haber özeti: class="mt10 haber_ozet"
-  const summaryMatch =
-    html.match(/<[^>]*class=["'][^"']*\bmt10\b[^"']*\bhaber_ozet\b[^"']*["'][^>]*>([\s\S]*?)<\/[^>]+>/i) ||
-    html.match(/<[^>]*class=["'][^"']*\bhaber_ozet\b[^"']*\bmt10\b[^"']*["'][^>]*>([\s\S]*?)<\/[^>]+>/i);
+  const candidates = [
+    html.match(/<[^>]+class=[\"'][^\"']*haber_ozet[^\"']*[\\"'][^>]*>([\\s\\S]*?)<\\/[^>]+>/i)?.[1] || "",
+    meta(html, "description"),
+    meta(html, "og:description"),
+  ].map(stripHtml).filter((v) => usefulSummary(v, title));
 
-  const summary = summaryMatch?.[1] ? stripHtml(summaryMatch[1]) : "";
-
-  // Sadece bu özet kullanılır. Bulunamazsa mevcut structured/meta içeriğe kontrollü fallback.
-  let fallback = "";
-  for (const match of html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
+  for (const match of html.matchAll(/<script[^>]+type=[\"']application\\/ld\\+json[\"'][^>]*>([\\s\\S]*?)<\\/script>/gi)) {
     try {
       const parsed = JSON.parse(match[1].trim());
       const nodes = Array.isArray(parsed) ? parsed : [parsed];
       for (const node of nodes) {
-        if (typeof node?.description === "string" && node.description.length > fallback.length) {
-          fallback = stripHtml(node.description);
-        }
-        if (typeof node?.articleBody === "string" && node.articleBody.length > fallback.length) {
-          fallback = stripHtml(node.articleBody);
+        if (typeof node?.description === "string") {
+          const value = stripHtml(node.description);
+          if (usefulSummary(value, title)) candidates.push(value);
         }
       }
     } catch {}
   }
 
-  const metaDescription =
-    html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i)?.[1] ||
-    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i)?.[1] ||
-    "";
-
-  return {
-    content: summary || fallback || stripHtml(metaDescription),
-    imageUrl: haberImage ? new URL(haberImage, base).href : "",
-  };
+  candidates.sort((a, b) => b.length - a.length);
+  return {summary: candidates[0] || "", imageUrl};
 }
 
-async function fetchHtmlNews(pageUrl: string, limit = 1): Promise<NewsItem[]> {
-  const response = await fetch(pageUrl, {
-    cache: "no-store",
-    headers: {
-      "User-Agent": "Mozilla/5.0 (compatible; AIO-Dijital/1.0; +https://aio-dijital.vercel.app)",
-      Accept: "text/html,application/xhtml+xml",
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error("Haber kaynağı alınamadı: " + response.status);
-  }
-
-  const html = await response.text();
-  const base = new URL(pageUrl);
-  const seen = new Set<string>();
-  const results: NewsItem[] = [];
-  const linkRegex = /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
-
-  for (const match of html.matchAll(linkRegex)) {
-    const href = match[1];
-    const raw = match[2];
-    const title = stripHtml(raw);
-
-    if (!title || title.length < 20 || title.length > 220) continue;
-    if (!href || href.startsWith("#") || href.startsWith("javascript:")) continue;
-
-    let url: URL;
-    try {
-      url = new URL(href, base);
-    } catch {
-      continue;
-    }
-
-    if (url.hostname !== base.hostname) continue;
-    if (!/\/(haber|son-dakika-haberleri)\//i.test(url.pathname)) continue;
-    if (seen.has(url.href)) continue;
-
-    seen.add(url.href);
-
-    const offset = match.index ?? 0;
-    const parentChunk = html.slice(Math.max(0, offset - 1200), Math.min(html.length, offset + raw.length + 1200));
-    const imageUrl =
-      parentChunk.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i)?.[1] || "";
-
-    results.push({
-      sourceUrl: url.href,
-      title,
-      content: title,
-      imageUrl: imageUrl ? new URL(imageUrl, base).href : "",
-      source: base.hostname.replace(/^www\./, ""),
-      publishedAt: new Date().toISOString(),
-    });
-
-    if (results.length >= limit) break;
-  }
-
-  return results;
+function imageFromItem(item: string) {
+  return (
+    item.match(/<media:content[^>]+url=[\"']([^\"']+)/i)?.[1] ||
+    item.match(/<enclosure[^>]+url=[\"']([^\"']+)/i)?.[1] ||
+    ""
+  );
 }
 
-export async function fetchRssNews(feedUrl: string, limit = 1): Promise<NewsItem[]> {
+export async function fetchRssNews(feedUrl: string, limit = 10): Promise<NewsItem[]> {
   const normalizedFeedUrl =
     feedUrl === "https://rss.sondakika.com/" || feedUrl === "https://rss.sondakika.com"
       ? "https://rss.sondakika.com/rssnew.aspx"
@@ -163,41 +113,45 @@ export async function fetchRssNews(feedUrl: string, limit = 1): Promise<NewsItem
     const xml = await response.text();
     const items = [...xml.matchAll(/<(item|entry)[^>]*>[\s\S]*?<\/(?:item|entry)>/gi)]
       .map((m) => m[0])
-      .slice(0, limit);
+      .slice(0, Math.max(limit, 10));
 
-    const parsed = [] as NewsItem[];
+    const parsed: NewsItem[] = [];
+
     for (const item of items) {
-        const title = stripHtml(firstTag(item, "title"));
-        const link =
-          firstTag(item, "link") ||
-          item.match(/<link[^>]+href=["']([^"']+)["']/i)?.[1] ||
-          "";
-        const content = stripHtml(
-          firstTag(item, "content:encoded") ||
-            firstTag(item, "description") ||
-            firstTag(item, "summary") ||
-            firstTag(item, "content")
-        );
-        const publishedAt =
+      if (parsed.length >= limit) break;
+      const title = firstTag(item, "title");
+      const link = firstTag(item, "link") || item.match(/<link[^>]+href=[\"']([^\"']+)/i)?.[1] || "";
+      if (!title || !link) continue;
+
+      const article = await fetchArticleDetails(link, title);
+      const imageUrl = article.imageUrl || normalizeImage(imageFromItem(item), new URL(link));
+
+      if (!article.summary || !imageUrl) {
+        console.warn("[news] skipping incomplete source item", {
+          title,
+          hasSummary: Boolean(article.summary),
+          hasImage: Boolean(imageUrl),
+          link,
+        });
+        continue;
+      }
+
+      parsed.push({
+        sourceUrl: link,
+        title,
+        content: article.summary,
+        imageUrl,
+        source: new URL(link).hostname.replace(/^www\./, ""),
+        publishedAt:
           firstTag(item, "pubDate") ||
           firstTag(item, "published") ||
           firstTag(item, "updated") ||
-          new Date().toISOString();
-
-        if (!title || !link) continue;
-        const article = await fetchArticleDetails(link);
-        parsed.push({
-          sourceUrl: link,
-          title,
-          content: article.content || content,
-          imageUrl: article.imageUrl || imageFromItem(item),
-          source: new URL(normalizedFeedUrl).hostname.replace(/^www\./, ""),
-          publishedAt,
-        });
-      }
+          new Date().toISOString(),
+      });
+    }
 
     if (parsed.length) return parsed;
   }
 
-  return fetchHtmlNews("https://www.sondakika.com/", limit);
+  throw new Error("SonDakika kaynağından başlık + özet + haber görseli birlikte alınamadı.");
 }
