@@ -69,8 +69,6 @@ async function fetchArticleDetails(pageUrl: string, title: string) {
     meta(html, "og:description"),
   ].map(stripHtml).filter((v) => usefulSummary(v, title));
 
-      }
-    } catch {}
   }
 
   candidates.sort((a, b) => b.length - a.length);
