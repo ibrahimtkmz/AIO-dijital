@@ -43,29 +43,32 @@ async function fetchArticleDetails(pageUrl: string) {
   const html = await response.text();
   const base = new URL(pageUrl);
 
-  const ogImage =
-    html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)?.[1] ||
-    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)?.[1] ||
+  // SonDakika'nın haber sayfasındaki asıl öne çıkan görsel:
+  // <img ... id="haberResim" src="...">
+  const haberImage =
+    html.match(/<img[^>]+id=["']haberResim["'][^>]+src=["']([^"']+)["']/i)?.[1] ||
+    html.match(/<img[^>]+src=["']([^"']+)["'][^>]+id=["']haberResim["']/i)?.[1] ||
     "";
 
-  const articleMatch = html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i);
-  const articleText = articleMatch?.[1] || "";
+  // SonDakika'nın haber özeti: class="mt10 haber_ozet"
+  const summaryMatch =
+    html.match(/<[^>]*class=["'][^"']*\bmt10\b[^"']*\bhaber_ozet\b[^"']*["'][^>]*>([\s\S]*?)<\/[^>]+>/i) ||
+    html.match(/<[^>]*class=["'][^"']*\bhaber_ozet\b[^"']*\bmt10\b[^"']*["'][^>]*>([\s\S]*?)<\/[^>]+>/i);
 
-  let jsonLdBody = "";
+  const summary = summaryMatch?.[1] ? stripHtml(summaryMatch[1]) : "";
+
+  // Sadece bu özet kullanılır. Bulunamazsa mevcut structured/meta içeriğe kontrollü fallback.
+  let fallback = "";
   for (const match of html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
     try {
       const parsed = JSON.parse(match[1].trim());
       const nodes = Array.isArray(parsed) ? parsed : [parsed];
       for (const node of nodes) {
-        if (typeof node?.articleBody === "string" && node.articleBody.length > jsonLdBody.length) {
-          jsonLdBody = node.articleBody;
+        if (typeof node?.description === "string" && node.description.length > fallback.length) {
+          fallback = stripHtml(node.description);
         }
-        if (Array.isArray(node?.["@graph"])) {
-          for (const graphNode of node["@graph"]) {
-            if (typeof graphNode?.articleBody === "string" && graphNode.articleBody.length > jsonLdBody.length) {
-              jsonLdBody = graphNode.articleBody;
-            }
-          }
+        if (typeof node?.articleBody === "string" && node.articleBody.length > fallback.length) {
+          fallback = stripHtml(node.articleBody);
         }
       }
     } catch {}
@@ -76,23 +79,9 @@ async function fetchArticleDetails(pageUrl: string) {
     html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i)?.[1] ||
     "";
 
-  const contentBlocks = articleText
-    ? [articleText]
-    : [...html.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)].map((m) => m[1]);
-
-  const content = [
-    jsonLdBody,
-    ...contentBlocks.map((x) => stripHtml(x)),
-    stripHtml(metaDescription),
-  ]
-    .filter((x) => x.length >= 20)
-    .join(" ")
-    .replace(/\s+/g, " ")
-    .trim();
-
   return {
-    content,
-    imageUrl: ogImage ? new URL(ogImage, base).href : "",
+    content: summary || fallback || stripHtml(metaDescription),
+    imageUrl: haberImage ? new URL(haberImage, base).href : "",
   };
 }
 
