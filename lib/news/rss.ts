@@ -65,7 +65,7 @@ async function fetchArticleDetails(pageUrl: string, title: string) {
     normalizeImage(meta(html, "twitter:image"), base);
 
   const candidates = [
-    html.match(/<[^>]+class=[\"'][^\"']*haber_ozet[^\"']*[\\"'][^>]*>([\\s\\S]*?)<\\/[^>]+>/i)?.[1] || "",
+    html.match(/<[^>]+class=["\'][^"\']*haber_ozet[^"\']*["\'][^>]*>([\\s\\S]*?)<\\/div>/i)?.[1] || "",
     meta(html, "description"),
     meta(html, "og:description"),
   ].map(stripHtml).filter((v) => usefulSummary(v, title));
