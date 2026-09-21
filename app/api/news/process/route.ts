@@ -13,19 +13,16 @@ export async function POST() {
   if (!feed) return NextResponse.json({ error: "NEWS_RSS_URL tanımlı değil." }, { status: 400 });
 
   try {
-    const news = await fetchRssNews(feed, 1);
+    const news = await fetchRssNews(feed, 10);
     console.log("[news] fetched", { count: news.length });
 
     const results = [];
-    const item = news[0];
+    const item = news.find((candidate) => !hasNews(candidate.sourceUrl));
     if (!item) {
-      return NextResponse.json({ ok: true, count: 0, results: [], message: "Yeni haber bulunamadı." });
+      return NextResponse.json({ ok: true, count: 0, results: [], message: "Yeni ve eksiksiz haber bulunamadı." });
     }
 
     {
-      if (hasNews(item.sourceUrl)) {
-        return NextResponse.json({ ok: true, count: 0, results: [], message: "İlk haber daha önce işlendi." });
-      }
 
       saveNews({
         sourceUrl: item.sourceUrl,
