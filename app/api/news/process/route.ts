@@ -42,19 +42,41 @@ export async function POST() {
         console.log("[news] video complete", { url: item.sourceUrl, duration: video.duration });
 
         let youtube: { videoId: string; url?: string } | undefined;
+        let publishError: string | undefined;
+
         if (process.env.AUTO_PUBLISH !== "false") {
-          youtube = await uploadYoutubeVideo({
-            videoPath: video.videoPath,
-            title: social.socialTitle,
-            description: social.socialText,
-            tags: ["haber", "gündem", "shorts"],
-            categoryId: "25",
-            privacyStatus: "public",
-          });
-          console.log("[news] youtube complete", { url: item.sourceUrl, videoId: youtube.videoId });
+          try {
+            youtube = await uploadYoutubeVideo({
+              videoPath: video.videoPath,
+              title: social.socialTitle,
+              description: social.socialText,
+              tags: ["haber", "gündem", "shorts"],
+              categoryId: "25",
+              privacyStatus: "public",
+            });
+            console.log("[news] youtube complete", { url: item.sourceUrl, videoId: youtube.videoId });
+          } catch (publishException) {
+            publishError = publishException instanceof Error ? publishException.message : String(publishException);
+            console.error("[news] youtube publish failed", {
+              url: item.sourceUrl,
+              error: publishError,
+            });
+
+            if (!/uploadLimitExceeded|exceeded the number of videos/i.test(publishError)) {
+              throw publishException;
+            }
+
+            console.warn("[news] YouTube daily upload limit reached; keeping generated video as ready.");
+          }
         }
 
-        results.push({ item, social, video: { ...video, videoPath: undefined }, youtube });
+        results.push({
+          item,
+          social,
+          video: { ...video, videoPath: undefined },
+          youtube,
+          publishError,
+        });
         saveNews({
           sourceUrl: item.sourceUrl,
           title: item.title,
