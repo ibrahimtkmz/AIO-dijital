@@ -10,7 +10,6 @@ await fs.rm(outDir, {recursive:true, force:true});
 await bundle({
   entryPoint: path.join(root, "remotion", "index.ts"),
   outDir,
-  publicDir: null,
 });
 
 console.log("[remotion] bundle created", outDir);
