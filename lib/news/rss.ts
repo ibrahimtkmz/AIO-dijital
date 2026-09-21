@@ -69,15 +69,6 @@ async function fetchArticleDetails(pageUrl: string, title: string) {
     meta(html, "og:description"),
   ].map(stripHtml).filter((v) => usefulSummary(v, title));
 
-  for (const match of html.matchAll(/<script[^>]+type=[\"']application\\/ld\\+json[\"'][^>]*>([\\s\\S]*?)<\\/script>/gi)) {
-    try {
-      const parsed = JSON.parse(match[1].trim());
-      const nodes = Array.isArray(parsed) ? parsed : [parsed];
-      for (const node of nodes) {
-        if (typeof node?.description === "string") {
-          const value = stripHtml(node.description);
-          if (usefulSummary(value, title)) candidates.push(value);
-        }
       }
     } catch {}
   }
