@@ -1,5 +1,7 @@
 name: Remotion smoke render
 on:
+  push:
+    branches: [test/remotion-smoke]
   workflow_dispatch:
 jobs:
   render:
