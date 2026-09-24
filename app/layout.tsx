@@ -2,9 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'AIO Dijital | Geri Bildirim Ödül Paneli',
-  description:
-    'Gerçek müşteri geri bildirimi toplayan, kullanıcı cüzdanı ve ödeme talebi süreçlerini yöneten panel.',
+  title: 'AIO Dijital | YouTube Video Otomasyonu',
+  description: 'Manus AI videolarını otomatik olarak YouTube Shorts olarak yayınlama sistemi.',
 };
 
 export default function RootLayout({
