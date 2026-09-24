@@ -1,6 +1,8 @@
-import { NewsStatus } from "./types";
-export type NewsRecord = { sourceUrl:string; title:string; source:string; imageUrl:string; status:NewsStatus; updatedAt:string; canvaDesignId?:string; youtubeVideoId?:string };
-const records = new Map<string, NewsRecord>();
-export function hasNews(url:string){ return records.has(url); }
-export function saveNews(record:NewsRecord){ records.set(record.sourceUrl,record); return record; }
-export function listNews(){ return [...records.values()].sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)); }
+import {get,put,list} from "@vercel/blob";
+import {NewsStatus} from "./types";
+export type NewsRecord={sourceUrl:string;title:string;source:string;imageUrl:string;status:NewsStatus;updatedAt:string;canvaDesignId?:string;canvaEditUrl?:string;canvaViewUrl?:string;youtubeVideoId?:string};
+const memory=new Map<string,NewsRecord>(); const prefix="news/records/";
+async function readRecord(pathname:string){const token=process.env.BLOB_READ_WRITE_TOKEN;if(!token)return null;try{const r=await get(pathname,{access:"private",token});if(!r?.stream)return null;const rd=r.stream.getReader();const c=[];while(true){const x=await rd.read();if(x.done)break;if(x.value)c.push(Buffer.from(x.value));}return JSON.parse(Buffer.concat(c).toString()) as NewsRecord;}catch{return null;}}
+export async function hasNews(url:string){if(memory.has(url))return true;const token=process.env.BLOB_READ_WRITE_TOKEN;if(!token)return false;const {blobs}=await list({prefix,limit:1000,token});for(const b of blobs){const r=await readRecord(b.pathname);if(r?.sourceUrl===url){memory.set(url,r);return true;}}return false;}
+export async function saveNews(record:NewsRecord){memory.set(record.sourceUrl,record);const token=process.env.BLOB_READ_WRITE_TOKEN;if(token){const key=Buffer.from(record.sourceUrl).toString("base64url").slice(0,120);await put(prefix+key+".json",JSON.stringify(record),{access:"private",addRandomSuffix:false,token});}return record;}
+export async function listNews(){const token=process.env.BLOB_READ_WRITE_TOKEN;if(!token)return [...memory.values()].sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));const {blobs}=await list({prefix,limit:1000,token});const out:NewsRecord[]=[];for(const b of blobs){const r=await readRecord(b.pathname);if(r)out.push(r);}return out.sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));}
