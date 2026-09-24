@@ -1,0 +1,3 @@
+import {NextResponse} from "next/server";import {saveQueueVideo} from "@/lib/news/queue";
+export const runtime="nodejs";export const maxDuration=60;
+export async function POST(request:Request){try{const form=await request.formData();const file=form.get("file");const title=String(form.get("title")||"");if(!(file instanceof File))return NextResponse.json({error:"MP4 yükle."},{status:400});if(file.type!=="video/mp4"&&!file.name.toLowerCase().endsWith(".mp4"))return NextResponse.json({error:"Yalnızca MP4 kabul edilir."},{status:400});const item=await saveQueueVideo(file,title);return NextResponse.json({ok:true,item});}catch(e){return NextResponse.json({error:e instanceof Error?e.message:String(e)},{status:500});}}
