@@ -1,117 +1,18 @@
-import { NextResponse } from "next/server";
-import { fetchRssNews } from "@/lib/news/rss";
-import { rewriteForSocial } from "@/lib/news/ai";
-import { createNewsVideo } from "@/lib/news/video";
-import { hasNews, saveNews } from "@/lib/news/store";
-import { uploadYoutubeVideo } from "@/lib/youtube";
-
-export const dynamic = "force-dynamic";
-export const maxDuration = 300;
-
-export async function POST() {
-  const feed = process.env.NEWS_RSS_URL;
-  if (!feed) return NextResponse.json({ error: "NEWS_RSS_URL tanımlı değil." }, { status: 400 });
-
-  try {
-    const news = await fetchRssNews(feed, 10);
-    console.log("[news] fetched", { count: news.length });
-
-    const results = [];
-    const item = news.find((candidate) => !hasNews(candidate.sourceUrl));
-    if (!item) {
-      return NextResponse.json({ ok: true, count: 0, results: [], message: "Yeni ve eksiksiz haber bulunamadı." });
-    }
-
-    {
-
-      saveNews({
-        sourceUrl: item.sourceUrl,
-        title: item.title,
-        source: item.source,
-        imageUrl: item.imageUrl,
-        status: "processing",
-        updatedAt: new Date().toISOString(),
-      });
-
-      try {
-        console.log("[news] processing", { url: item.sourceUrl, imageUrl: item.imageUrl });
-        const social = await rewriteForSocial(item);
-        console.log("[news] ai complete", { url: item.sourceUrl });
-
-        const video = await createNewsVideo(social);
-        console.log("[news] video complete", { url: item.sourceUrl, duration: video.duration });
-
-        let youtube: { videoId: string; url?: string } | undefined;
-        let publishError: string | undefined;
-
-        if (process.env.AUTO_PUBLISH !== "false") {
-          try {
-            youtube = await uploadYoutubeVideo({
-              videoPath: video.videoPath,
-              title: social.socialTitle,
-              description: social.socialText,
-              tags: ["haber", "gündem", "shorts"],
-              categoryId: "25",
-              privacyStatus: "public",
-            });
-            console.log("[news] youtube complete", { url: item.sourceUrl, videoId: youtube.videoId });
-          } catch (publishException) {
-            publishError = publishException instanceof Error ? publishException.message : String(publishException);
-            console.error("[news] youtube publish failed", {
-              url: item.sourceUrl,
-              error: publishError,
-            });
-
-            if (!/uploadLimitExceeded|exceeded the number of videos/i.test(publishError)) {
-              throw publishException;
-            }
-
-            console.warn("[news] YouTube daily upload limit reached; keeping generated video as ready.");
-          }
-        }
-
-        results.push({
-          item,
-          social,
-          video: { ...video, videoPath: undefined },
-          youtube,
-          publishError,
-        });
-        saveNews({
-          sourceUrl: item.sourceUrl,
-          title: item.title,
-          source: item.source,
-          imageUrl: item.imageUrl,
-          status: youtube ? "youtube_published" : "ready",
-          updatedAt: new Date().toISOString(),
-          youtubeVideoId: youtube?.videoId,
-        });
-      } catch (e) {
-        const errorMessage = e instanceof Error ? e.message : String(e);
-        console.error("[news] item failed", {
-          url: item.sourceUrl,
-          imageUrl: item.imageUrl,
-          error: errorMessage,
-          stack: e instanceof Error ? e.stack : undefined,
-        });
-        saveNews({
-          sourceUrl: item.sourceUrl,
-          title: item.title,
-          source: item.source,
-          imageUrl: item.imageUrl,
-          status: "failed",
-          updatedAt: new Date().toISOString(),
-        });
-        results.push({ item, error: errorMessage });
-      }
-    }
-
-    return NextResponse.json({ ok: true, count: results.length, results });
-  } catch (e) {
-    const errorMessage = e instanceof Error ? e.message : String(e);
-    console.error("[news] process failed", { error: errorMessage, stack: e instanceof Error ? e.stack : undefined });
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
-  }
-}
-
-export const GET = POST;
+import {NextResponse} from "next/server";
+import {fetchRssNews} from "@/lib/news/rss";
+import {rewriteForSocial} from "@/lib/news/ai";
+import {hasNews,saveNews} from "@/lib/news/store";
+import {createCanvaNewsDesign} from "@/lib/canva";
+import {notifyReady} from "@/lib/notify";
+export const dynamic="force-dynamic"; export const maxDuration=300;
+export async function POST(){const feed=process.env.NEWS_RSS_URL;if(!feed)return NextResponse.json({error:"NEWS_RSS_URL tanımlı değil."},{status:400});try{
+ const news=await fetchRssNews(feed,10); const candidates=news.filter(x=>!hasNews(x.sourceUrl)).slice(0,5); const results=[];
+ for(const item of candidates){saveNews({sourceUrl:item.sourceUrl,title:item.title,source:item.source,imageUrl:item.imageUrl,status:"processing",updatedAt:new Date().toISOString()});try{
+  const social=await rewriteForSocial(item); const canva=await createCanvaNewsDesign({title:social.socialTitle,body:social.socialText,imageUrl:social.imageUrl});
+  saveNews({sourceUrl:item.sourceUrl,title:item.title,source:item.source,imageUrl:item.imageUrl,status:"canva_created",updatedAt:new Date().toISOString(),canvaDesignId:canva.designId,canvaEditUrl:canva.editUrl,canvaViewUrl:canva.viewUrl});
+  results.push({item,social,canva});
+ }catch(e){const msg=e instanceof Error?e.message:String(e);saveNews({sourceUrl:item.sourceUrl,title:item.title,source:item.source,imageUrl:item.imageUrl,status:"failed",updatedAt:new Date().toISOString()});results.push({item,error:msg});}}
+ const ready=results.filter(x=>"canva" in x).map(x=>({title:x.item.title,editUrl:x.canva.editUrl})); if(ready.length)await notifyReady(ready).catch(e=>console.error("[notify] failed",e));
+ return NextResponse.json({ok:true,count:results.length,results});
+ }catch(e){return NextResponse.json({error:e instanceof Error?e.message:String(e)},{status:500});}}
+export const GET=POST;
