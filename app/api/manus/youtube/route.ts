@@ -5,7 +5,7 @@ export const dynamic="force-dynamic";
 export const maxDuration=300;
 
 function authorized(request:Request){
- const expected=process.env.MANUS_WEBHOOK_SECRET;
+ const expected=process.env.DIRECT_UPLOAD_TEST_SECRET || process.env.MANUS_WEBHOOK_SECRET;
  if(!expected) throw new Error("MANUS_WEBHOOK_SECRET tanımlı değil.");
  return request.headers.get("authorization")===("Bearer "+expected) || request.headers.get("x-manus-secret")===expected;
 }
